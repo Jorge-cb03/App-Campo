@@ -1,0 +1,297 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 8,
+    "identityHash": "71c85b247357533783c0b6e7cc4f2a1a",
+    "entities": [
+      {
+        "tableName": "jardineras",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `filas` INTEGER NOT NULL, `columnas` INTEGER NOT NULL, `estaArchivada` INTEGER NOT NULL, `esFavorita` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filas",
+            "columnName": "filas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "columnas",
+            "columnName": "columnas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estaArchivada",
+            "columnName": "estaArchivada",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "esFavorita",
+            "columnName": "esFavorita",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "bancales",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `jardineraId` INTEGER NOT NULL, `fila` INTEGER NOT NULL, `columna` INTEGER NOT NULL, `perenualId` INTEGER, `nombreCultivo` TEXT, `imagenUrl` TEXT, `frecuenciaRiegoDias` INTEGER, `necesidadSol` TEXT, `fechaSiembra` INTEGER, `esFuncional` INTEGER NOT NULL, FOREIGN KEY(`jardineraId`) REFERENCES `jardineras`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "jardineraId",
+            "columnName": "jardineraId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fila",
+            "columnName": "fila",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "columna",
+            "columnName": "columna",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "perenualId",
+            "columnName": "perenualId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "nombreCultivo",
+            "columnName": "nombreCultivo",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imagenUrl",
+            "columnName": "imagenUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "frecuenciaRiegoDias",
+            "columnName": "frecuenciaRiegoDias",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "necesidadSol",
+            "columnName": "necesidadSol",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fechaSiembra",
+            "columnName": "fechaSiembra",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "esFuncional",
+            "columnName": "esFuncional",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_bancales_jardineraId",
+            "unique": false,
+            "columnNames": [
+              "jardineraId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bancales_jardineraId` ON `${TABLE_NAME}` (`jardineraId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "jardineras",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "jardineraId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "productos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `categoria` TEXT NOT NULL, `stock` REAL NOT NULL, `perenualId` INTEGER, `imagenUrl` TEXT, `nombreCientifico` TEXT, `notasCultivo` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoria",
+            "columnName": "categoria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stock",
+            "columnName": "stock",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "perenualId",
+            "columnName": "perenualId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "imagenUrl",
+            "columnName": "imagenUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "nombreCientifico",
+            "columnName": "nombreCientifico",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notasCultivo",
+            "columnName": "notasCultivo",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "entradas_diario",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `bancalId` INTEGER NOT NULL, `tipoAccion` TEXT NOT NULL, `descripcion` TEXT NOT NULL, `fecha` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bancalId",
+            "columnName": "bancalId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoAccion",
+            "columnName": "tipoAccion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "alertas",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `dateTimeEpochMillis` INTEGER NOT NULL, `isUrgent` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateTimeEpochMillis",
+            "columnName": "dateTimeEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isUrgent",
+            "columnName": "isUrgent",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '71c85b247357533783c0b6e7cc4f2a1a')"
+    ]
+  }
+}

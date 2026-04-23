@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "791210199776",
+    "project_id": "huertamanager",
+    "storage_bucket": "huertamanager.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791210199776:android:58d33fc3b2fd6311e91e85",
+        "android_client_info": {
+          "package_name": "com.example.proyecto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "791210199776-u8garm9rrh1mqoi1nkma0kao0fcit6im.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.proyecto",
+            "certificate_hash": "677b6a9632a5895f87d2f04d7d4dff794b5d468e"
+          }
+        },
+        {
+          "client_id": "791210199776-n68th3k1ji1vgj5hb36vgan0sa7d94cc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmXbmWMcW28SuIHa_Uyp3Cdf3UNxbDsLQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "791210199776-n68th3k1ji1vgj5hb36vgan0sa7d94cc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
