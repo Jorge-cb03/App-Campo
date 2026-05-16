@@ -2,8 +2,10 @@ package com.example.proyecto.di
 
 import com.example.proyecto.data.database.AppDatabase
 import com.example.proyecto.data.database.getDatabaseBuilder
+import com.example.proyecto.data.repository.AnimalRepository
 import com.example.proyecto.data.repository.AuthRepository
 import com.example.proyecto.data.repository.JardineraRepository
+import com.example.proyecto.ui.animals.AnimalsViewModel
 import com.example.proyecto.ui.garden.GardenViewModel
 import com.example.proyecto.util.LocationProvider
 import org.koin.core.module.dsl.viewModel
@@ -19,6 +21,7 @@ val appModule = module {
     single { get<AppDatabase>().bancalDao() }
     single { get<AppDatabase>().productoDao() }
     single { get<AppDatabase>().entradaDiarioDao() }
+    single { get<AppDatabase>().animalDao() }
 
     // LocationProvider
     single { LocationProvider() }
@@ -36,9 +39,12 @@ val appModule = module {
         )
     }
 
+    single { AnimalRepository(get()) }
+
     single { AuthRepository() }
 
     // ViewModel
+    viewModel { AnimalsViewModel(get(), get()) }
     viewModel {
         GardenViewModel(
             repository = get<JardineraRepository>(),

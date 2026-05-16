@@ -1,11 +1,14 @@
 package com.example.proyecto.ui.garden
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -19,19 +22,27 @@ fun JardineraCard(
     jardinera: Jardinera,
     onClick: () -> Unit
 ) {
+    // NUEVO: Detectamos automáticamente si estamos en modo oscuro
+    val isDark = isSystemInDarkTheme()
+
+    // Seleccionamos el color de "tierra" según el tema
+    val tierraColor = if (isDark) Color(0xFF3E2723) else Color(0xFFEFEBE9)
+
     val cardColor = when (jardinera.estado) {
-        EstadoJardinera.VACIO -> MaterialTheme.colorScheme.surfaceVariant
+        EstadoJardinera.VACIO -> tierraColor // Ahora usa nuestro color tierra
         EstadoJardinera.OCUPADO -> MaterialTheme.colorScheme.primaryContainer
         EstadoJardinera.ENFERMO -> MaterialTheme.colorScheme.errorContainer
     }
 
     Card(
         modifier = Modifier
-            .padding(4.dp) // MENOS MARGEN EXTERNO (antes era 8.dp)
-            .aspectRatio(1f) // Se mantiene cuadrada
+            .padding(4.dp)
+            .aspectRatio(1f)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        // Añadimos un borde fino para que sea más elegante y minimalista
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier

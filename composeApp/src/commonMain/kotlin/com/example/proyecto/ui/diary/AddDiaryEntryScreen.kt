@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -36,7 +37,6 @@ import com.example.proyecto.data.database.entity.BancalEntity
 import com.example.proyecto.data.database.entity.JardineraEntity
 import com.example.proyecto.ui.HuertaInput
 import com.example.proyecto.ui.garden.GardenViewModel
-import com.example.proyecto.ui.theme.GreenPrimary
 import com.example.proyecto.util.MediaManager
 import kotlinx.datetime.*
 import org.jetbrains.compose.resources.stringResource
@@ -109,15 +109,12 @@ fun AddDiaryEntryScreen(
         }
     }
 
-    // --- NUEVO: Launcher para pedir PERMISO DE CÁMARA ---
+    // Launcher para pedir PERMISO DE CÁMARA
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Si el usuario acepta, lanzamos la cámara
             launcher.launchCamera()
-        } else {
-            // Opcional: Mostrar un Toast o aviso de que el permiso es necesario
         }
     }
 
@@ -145,10 +142,12 @@ fun AddDiaryEntryScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (isEditMode) Res.string.diary_edit_entry_title else Res.string.diary_new_entry_title)) },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Filled.ArrowBack, null) } }
+                title = { Text(stringResource(if (isEditMode) Res.string.diary_edit_entry_title else Res.string.diary_new_entry_title), fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Filled.ArrowBack, null) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
@@ -161,9 +160,13 @@ fun AddDiaryEntryScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // SECCIÓN 1: UBICACIÓN Y FECHA
-            OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+            OutlinedCard(
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(stringResource(Res.string.diary_section_location), color = GreenPrimary, fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.diary_section_location), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Box {
                         SelectorRow(
                             label = stringResource(Res.string.diary_select_garden),
@@ -191,20 +194,37 @@ fun AddDiaryEntryScreen(
 
             // SECCIÓN 2: SELECTOR BANCALES
             if (selectedJardinera != null) {
-                OutlinedCard(border = BorderStroke(1.dp, GreenPrimary.copy(alpha = 0.3f))) {
+                OutlinedCard(
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                            Text(stringResource(Res.string.diary_select_slots), fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.diary_select_slots), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             TextButton(onClick = {
                                 if (selectedBancalIds.size == bancalesDisponibles.size) selectedBancalIds.clear()
                                 else { selectedBancalIds.clear(); selectedBancalIds.addAll(bancalesDisponibles.map { it.id }) }
-                            }) { Text(if (selectedBancalIds.size == bancalesDisponibles.size) stringResource(Res.string.diary_deselect) else stringResource(Res.string.diary_all)) }
+                            }) { Text(if (selectedBancalIds.size == bancalesDisponibles.size) stringResource(Res.string.diary_deselect) else stringResource(Res.string.diary_all), color = MaterialTheme.colorScheme.primary) }
                         }
-                        LazyVerticalGrid(columns = GridCells.Fixed(selectedJardinera!!.columnas), modifier = Modifier.heightIn(max = 250.dp).padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        LazyVerticalGrid(columns = GridCells.Fixed(selectedJardinera!!.columnas), modifier = Modifier.heightIn(max = 250.dp).padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(bancalesDisponibles) { bancal ->
                                 val isSelected = selectedBancalIds.contains(bancal.id)
-                                Box(modifier = Modifier.aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(if (isSelected) GreenPrimary else MaterialTheme.colorScheme.surfaceVariant).clickable { if (isSelected) selectedBancalIds.remove(bancal.id) else selectedBancalIds.add(bancal.id) }, contentAlignment = Alignment.Center) {
-                                    Text(text = bancal.nombreCultivo?.take(2) ?: "${bancal.fila + 1}-${bancal.columna + 1}", color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Box(
+                                    modifier = Modifier
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                        .border(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                                        .clickable { if (isSelected) selectedBancalIds.remove(bancal.id) else selectedBancalIds.add(bancal.id) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = bancal.nombreCultivo?.take(2) ?: "${bancal.fila + 1}-${bancal.columna + 1}",
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
                         }
@@ -213,9 +233,13 @@ fun AddDiaryEntryScreen(
             }
 
             // SECCIÓN 3: DETALLES
-            OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+            OutlinedCard(
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Text(stringResource(Res.string.diary_section_details), color = GreenPrimary, fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.diary_section_details), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
 
                     HuertaInput(
                         value = title,
@@ -233,33 +257,60 @@ fun AddDiaryEntryScreen(
                         imeAction = ImeAction.Done
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(stringResource(Res.string.diary_type_label), style = MaterialTheme.typography.labelLarge)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            taskTypes.forEach { type -> FilterChip(selected = (type == selectedType), onClick = { selectedType = type }, label = { Text(type) }) }
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(Res.string.diary_type_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            taskTypes.forEach { type ->
+                                FilterChip(
+                                    selected = (type == selectedType),
+                                    onClick = { selectedType = type },
+                                    label = { Text(type) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = type == selectedType,
+                                        borderColor = MaterialTheme.colorScheme.outlineVariant
+                                    )
+                                )
+                            }
                         }
                     }
 
                     if (selectedType == irrigationTypeStr) {
-                        Column(modifier = Modifier.background(GreenPrimary.copy(alpha = 0.05f), RoundedCornerShape(12.dp)).padding(12.dp)) {
-                            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) { Text(stringResource(Res.string.diary_water_amount)); Text("${waterAmount.toInt()} L", fontWeight = FontWeight.Bold, color = GreenPrimary) }
-                            Slider(value = waterAmount, onValueChange = { waterAmount = it }, valueRange = 0f..20f, steps = 19)
+                        Column(modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f), RoundedCornerShape(12.dp)).padding(16.dp)) {
+                            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                                Text(stringResource(Res.string.diary_water_amount), color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                Text("${waterAmount.toInt()} L", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Slider(
+                                value = waterAmount,
+                                onValueChange = { waterAmount = it },
+                                valueRange = 0f..20f,
+                                steps = 19,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
                         }
                     }
                 }
             }
 
             // SECCIÓN 4: FOTO
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Surface(
-                    modifier = Modifier.weight(1f).height(100.dp).clip(RoundedCornerShape(16.dp)).clickable { showPhotoOptions = true },
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, if (diaryPhotoBytes != null) GreenPrimary else Color.Transparent)
-                ) {
-                    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(if (diaryPhotoBytes != null) Icons.Outlined.Image else Icons.Outlined.CameraAlt, null, tint = if (diaryPhotoBytes != null) GreenPrimary else Color.Gray)
-                        Text(if (diaryPhotoBytes != null) stringResource(Res.string.diary_photo_change) else stringResource(Res.string.diary_add_photo), fontSize = 12.sp)
-                    }
+            Surface(
+                modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(16.dp)).clickable { showPhotoOptions = true },
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                border = BorderStroke(1.dp, if (diaryPhotoBytes != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(if (diaryPhotoBytes != null) Icons.Outlined.Image else Icons.Outlined.CameraAlt, null, tint = if (diaryPhotoBytes != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(32.dp))
+                    Spacer(Modifier.height(8.dp))
+                    Text(if (diaryPhotoBytes != null) stringResource(Res.string.diary_photo_change) else stringResource(Res.string.diary_add_photo), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -290,10 +341,13 @@ fun AddDiaryEntryScreen(
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 enabled = selectedBancalIds.isNotEmpty() && title.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Text(if (isEditMode) stringResource(Res.string.btn_update) else stringResource(Res.string.diary_btn_register, selectedBancalIds.size), fontWeight = FontWeight.Bold)
+                Text(if (isEditMode) stringResource(Res.string.btn_update) else stringResource(Res.string.diary_btn_register, selectedBancalIds.size), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
+
+            Spacer(Modifier.height(20.dp)) // Espacio al final
         }
     }
 
@@ -301,11 +355,10 @@ fun AddDiaryEntryScreen(
     if (showPhotoOptions) {
         AlertDialog(
             onDismissRequest = { showPhotoOptions = false },
-            icon = { Icon(Icons.Outlined.CameraAlt, null) },
-            title = { Text(stringResource(Res.string.diary_dialog_photo_title)) },
+            icon = { Icon(Icons.Outlined.CameraAlt, null, tint = MaterialTheme.colorScheme.primary) },
+            title = { Text(stringResource(Res.string.diary_dialog_photo_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    // BOTÓN CÁMARA CON VERIFICACIÓN DE PERMISOS
                     Button(
                         onClick = {
                             val permission = Manifest.permission.CAMERA
@@ -316,42 +369,53 @@ fun AddDiaryEntryScreen(
                             }
                             showPhotoOptions = false
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(Icons.Outlined.CameraAlt, null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(Res.string.diary_btn_take_photo))
                     }
 
-                    // BOTÓN GALERÍA
                     OutlinedButton(
                         onClick = {
-                            // Normalmente la galería con Photo Picker moderno no requiere permisos,
-                            // pero si usas uno antiguo, MediaManager debería gestionarlo.
                             launcher.launchGallery()
                             showPhotoOptions = false
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
-                        Icon(Icons.Outlined.Image, null)
+                        Icon(Icons.Outlined.Image, null, tint = MaterialTheme.colorScheme.onSurface)
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(Res.string.diary_btn_gallery))
+                        Text(stringResource(Res.string.diary_btn_gallery), color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showPhotoOptions = false }) { Text(stringResource(Res.string.btn_cancel)) } }
+            confirmButton = { TextButton(onClick = { showPhotoOptions = false }) { Text(stringResource(Res.string.btn_cancel)) } },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
     if (showSuccessDialog) {
-        AlertDialog(onDismissRequest = { }, title = { Text(stringResource(Res.string.dialog_success_title)) }, text = { Text(successMsg) }, confirmButton = { Button(onClick = { showSuccessDialog = false; navController.popBackStack() }) { Text(stringResource(Res.string.dialog_btn_ok)) } })
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(stringResource(Res.string.dialog_success_title), fontWeight = FontWeight.Bold) },
+            text = { Text(successMsg) },
+            confirmButton = { Button(onClick = { showSuccessDialog = false; navController.popBackStack() }, shape = RoundedCornerShape(12.dp)) { Text(stringResource(Res.string.dialog_btn_ok)) } },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp)
+        )
     }
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds())
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
-            confirmButton = { TextButton(onClick = { datePickerState.selectedDateMillis?.let { millis -> selectedDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date }; showDatePicker = false }) { Text(stringResource(Res.string.dialog_btn_ok)) } }
+            confirmButton = { TextButton(onClick = { datePickerState.selectedDateMillis?.let { millis -> selectedDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date }; showDatePicker = false }) { Text(stringResource(Res.string.dialog_btn_ok)) } },
+            colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(24.dp)
         ) { DatePicker(state = datePickerState) }
     }
 }
@@ -360,10 +424,10 @@ fun AddDiaryEntryScreen(
 fun SelectorRow(label: String, value: String, icon: ImageVector, onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
             Spacer(Modifier.width(16.dp))
-            Column { Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary); Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium) }
+            Column { Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant); Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface) }
         }
-        Icon(Icons.Default.ChevronRight, null, tint = Color.Gray)
+        Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.outlineVariant)
     }
 }

@@ -16,19 +16,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.proyecto.data.database.entity.BancalEntity
 import com.example.proyecto.data.database.entity.EntradaDiarioEntity
 import com.example.proyecto.ui.garden.GardenViewModel
-import com.example.proyecto.ui.theme.GreenPrimary
 import com.example.proyecto.ui.theme.RedDanger
 import kotlinx.datetime.*
 import org.jetbrains.compose.resources.stringResource
@@ -56,28 +53,26 @@ fun DiaryDetailScreen(navController: NavController, taskId: Long, viewModel: Gar
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.popBackStack() },
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                    ) { Icon(Icons.Rounded.ArrowBack, null, tint = Color.White) }
+                        modifier = Modifier.padding(8.dp).background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), CircleShape)
+                    ) { Icon(Icons.Rounded.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurface) }
                 },
                 actions = {
                     Box(modifier = Modifier.padding(8.dp)) {
                         IconButton(
                             onClick = { showMenu = true },
-                            modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                        ) { Icon(Icons.Default.MoreVert, null, tint = Color.White) }
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), CircleShape)
+                        ) { Icon(Icons.Default.MoreVert, null, tint = MaterialTheme.colorScheme.onSurface) }
 
                         DropdownMenu(
                             expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                            onDismissRequest = { showMenu = false }
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(Res.string.diary_edit_record)) },
@@ -89,7 +84,6 @@ fun DiaryDetailScreen(navController: NavController, taskId: Long, viewModel: Gar
                                     }
                                 }
                             )
-                            HorizontalDivider()
                             DropdownMenuItem(
                                 text = { Text(stringResource(Res.string.diary_delete_record), color = RedDanger) },
                                 leadingIcon = { Icon(Icons.Default.Delete, null, tint = RedDanger) },
@@ -103,8 +97,7 @@ fun DiaryDetailScreen(navController: NavController, taskId: Long, viewModel: Gar
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        }
     ) { padding ->
         if (entrada == null) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -114,15 +107,11 @@ fun DiaryDetailScreen(navController: NavController, taskId: Long, viewModel: Gar
             val formattedDate = "${date.dayOfMonth}/${date.monthNumber}/${date.year}"
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
+                modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
             ) {
-                // --- CABECERA VISUAL ---
+                // --- CABECERA MINIMALISTA ---
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
+                    modifier = Modifier.fillMaxWidth().height(280.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
                 ) {
                     if (item.foto != null) {
                         val bitmap = BitmapFactory.decodeByteArray(item.foto, 0, item.foto.size).asImageBitmap()
@@ -132,107 +121,95 @@ fun DiaryDetailScreen(navController: NavController, taskId: Long, viewModel: Gar
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
-                        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)))
                     } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(GreenPrimary, GreenPrimary.copy(alpha = 0.6f))
-                                    )
-                                )
-                        )
+                        // Fondo neutro minimalista cuando no hay foto
+                        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)))
                     }
 
+                    // Título y categoría flotante
                     Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)
                     ) {
                         Surface(
-                            shape = CircleShape,
-                            color = Color.White,
-                            shadowElevation = 8.dp,
-                            modifier = Modifier.size(100.dp)
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = getIconForAction(item.tipoAccion),
-                                    contentDescription = null,
-                                    tint = GreenPrimary,
-                                    modifier = Modifier.size(50.dp)
-                                )
-                            }
+                            Text(
+                                text = item.tipoAccion.uppercase(),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
-                        Spacer(Modifier.height(16.dp))
-                        Text(
-                            text = item.tipoAccion.uppercase(),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            letterSpacing = 1.sp
-                        )
                     }
                 }
 
-                // --- TARJETA DE CONTENIDO ---
+                // --- CUERPO DEL DETALLE ---
                 Column(
-                    modifier = Modifier
-                        .offset(y = (-40).dp)
-                        .padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    ElevatedCard(
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    // Tarjeta de información básica (Plana)
+                    OutlinedCard(
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(Modifier.padding(24.dp)) {
-                            Text(stringResource(Res.string.diary_detail_tech_sheet), style = MaterialTheme.typography.labelLarge, color = Color.Gray)
-                            Spacer(Modifier.height(16.dp))
-
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                InfoItem(icon = Icons.Rounded.CalendarToday, label = stringResource(Res.string.diary_detail_date), value = formattedDate)
-                                InfoItem(icon = Icons.Rounded.Grass, label = stringResource(Res.string.diary_detail_location), value = bancalAsociado?.nombreCultivo ?: "Bancal ${bancalAsociado?.fila ?: "-"}-${bancalAsociado?.columna ?: "-"}")
-                            }
+                        Row(
+                            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            DetailInfoBox(
+                                icon = Icons.Rounded.CalendarToday,
+                                label = stringResource(Res.string.diary_detail_date),
+                                value = formattedDate
+                            )
+                            VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                            DetailInfoBox(
+                                icon = Icons.Rounded.Grass,
+                                label = stringResource(Res.string.diary_detail_location),
+                                value = bancalAsociado?.nombreCultivo ?: "${bancalAsociado?.fila}-${bancalAsociado?.columna}"
+                            )
                         }
                     }
 
-                    Spacer(Modifier.height(24.dp))
-
-                    Text(
-                        text = stringResource(Res.string.diary_detail_notes_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(Modifier.height(12.dp))
-
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    // Sección de Notas
+                    Column {
                         Text(
-                            text = item.descripcion.ifBlank { stringResource(Res.string.diary_detail_no_notes) },
-                            style = MaterialTheme.typography.bodyLarge,
-                            lineHeight = 28.sp,
-                            modifier = Modifier.padding(20.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = stringResource(Res.string.diary_detail_notes_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
+                        Spacer(Modifier.height(12.dp))
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = item.descripcion.ifBlank { stringResource(Res.string.diary_detail_no_notes) },
+                                style = MaterialTheme.typography.bodyLarge,
+                                lineHeight = 26.sp,
+                                modifier = Modifier.padding(20.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-
-                    Spacer(Modifier.height(100.dp))
                 }
+                Spacer(Modifier.height(40.dp))
             }
         }
     }
 
+    // Diálogos con esquinas redondeadas minimalistas
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             icon = { Icon(Icons.Rounded.Warning, null, tint = RedDanger) },
-            title = { Text(stringResource(Res.string.diary_delete_record)) },
+            title = { Text(stringResource(Res.string.diary_delete_record), fontWeight = FontWeight.Bold) },
             text = { Text(stringResource(Res.string.diary_delete_confirm_msg)) },
             confirmButton = {
                 Button(
@@ -241,39 +218,36 @@ fun DiaryDetailScreen(navController: NavController, taskId: Long, viewModel: Gar
                         showDeleteConfirm = false
                         showSuccessDialog = true
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = RedDanger)
+                    colors = ButtonDefaults.buttonColors(containerColor = RedDanger),
+                    shape = RoundedCornerShape(12.dp)
                 ) { Text(stringResource(Res.string.btn_confirm)) }
             },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(Res.string.btn_cancel)) } }
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(Res.string.btn_cancel)) } },
+            shape = RoundedCornerShape(28.dp)
         )
     }
 
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text(stringResource(Res.string.dialog_success_title)) },
+            title = { Text(stringResource(Res.string.dialog_success_title), fontWeight = FontWeight.Bold) },
             text = { Text(stringResource(Res.string.dialog_success_diary_deleted)) },
-            confirmButton = { Button(onClick = { showSuccessDialog = false; navController.popBackStack() }) { Text(stringResource(Res.string.dialog_btn_ok)) } }
+            confirmButton = {
+                Button(onClick = { showSuccessDialog = false; navController.popBackStack() }, shape = RoundedCornerShape(12.dp))
+                { Text(stringResource(Res.string.dialog_btn_ok)) }
+            },
+            shape = RoundedCornerShape(28.dp)
         )
     }
 }
 
 @Composable
-fun InfoItem(icon: ImageVector, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(GreenPrimary.copy(alpha = 0.1f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, null, tint = GreenPrimary, modifier = Modifier.size(20.dp))
-        }
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-        }
+fun DetailInfoBox(icon: ImageVector, label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.height(4.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 

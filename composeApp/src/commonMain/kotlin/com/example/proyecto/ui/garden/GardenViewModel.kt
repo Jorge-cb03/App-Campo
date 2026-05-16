@@ -22,15 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlin.collections.firstOrNull
 import kotlin.collections.plus
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -42,10 +34,12 @@ data class WeatherState(
     val isDay: Int = 1,
     val isLoading: Boolean = true
 )
+
 @Serializable
 data class Candidate(
     val content: GeminiContent
 )
+
 @Serializable
 data class Content(
     val parts: List<Part>,
@@ -67,6 +61,7 @@ data class GeminiContent( // <--- RENOMBRADO de 'Content' a 'GeminiContent'
 data class Part(
     val text: String
 )
+
 @Serializable
 data class WeatherResponse(val current: CurrentWeather)
 
@@ -81,6 +76,7 @@ data class GeminiResponse(
     val candidates: List<Candidate>? = null,
     val error: ApiError? = null
 )
+
 @Serializable
 data class ApiError(
     val code: Int,
@@ -132,8 +128,6 @@ class GardenViewModel(
         }
     }
 
-    // GardenViewModel.kt
-// GardenViewModel.kt
     fun guardarPerfil(nombre: String, email: String, foto: Any?) {
         viewModelScope.launch {
             repository.registrarUsuarioLocal(nombre, email, foto)
@@ -200,6 +194,7 @@ class GardenViewModel(
             esSemilla && p.stock > 0
         }
     }
+
     // --- TIEMPO Y GEMINI ---
     private val _weatherState = MutableStateFlow(WeatherState())
     val weatherState = _weatherState.asStateFlow()
@@ -264,7 +259,7 @@ class GardenViewModel(
 
         viewModelScope.launch {
             try {
-                val apiKey = "TU_API_KEY_AQUI" // <--- ¡No olvides tu API Key!
+                val apiKey = GEMINI_API_KEY // <-- Utilizando la variable de arriba
 
                 // CORRECCIÓN: Usamos GeminiContent en lugar de Content
                 val requestBody = GeminiRequest(
@@ -299,7 +294,6 @@ class GardenViewModel(
             }
         }
     }
-
 
     // --- COSECHA INTELIGENTE ---
     fun cosecharConCantidad(bancal: BancalEntity, cantidad: Double) {
@@ -383,7 +377,12 @@ class GardenViewModel(
     fun getBancales(id: Long) = repository.getBancales(id)
     suspend fun getBancalById(id: Long) = repository.getBancalById(id)
     fun toggleBancal(id: Long, f: Boolean) = viewModelScope.launch { repository.setEstadoFuncionalBancal(id, f) }
-    fun plantar(bId: Long, apiId: Int) = viewModelScope.launch { repository.plantarEnBancal(bId, apiId) }
+    fun plantar(bancalId: Long, productoId: Long) {
+        viewModelScope.launch {
+            // Usamos el ID del producto que el usuario eligió de su inventario
+            repository.plantarEnBancal(bancalId, productoId.toInt())
+        }
+    }
     fun cosechar(bId: Long) = viewModelScope.launch { repository.cosecharBancal(bId) }
     fun registrarRiego(bId: Long, litros: Double) = viewModelScope.launch { repository.registrarRiego(bId, litros) }
     fun aplicarTratamiento(bId: Long, p: ProductoEntity, cant: Double, tipo: String) = viewModelScope.launch { repository.registrarTratamiento(bId, p.id, cant, tipo) }
@@ -438,6 +437,4 @@ class GardenViewModel(
             }
         }
     }
-
-
 }

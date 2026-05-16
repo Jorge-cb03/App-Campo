@@ -11,10 +11,13 @@ import com.example.proyecto.data.database.entity.*
         BancalEntity::class,
         ProductoEntity::class,
         EntradaDiarioEntity::class,
+        EntradaDiarioAnimalEntity::class,
+        CercadoEntity::class,
         AlertaEntity::class,
+        AnimalEntity::class,
         UsuarioEntity::class
     ],
-    version = 13,
+    version = 16,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -23,5 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun productoDao(): ProductoDao
     abstract fun entradaDiarioDao(): EntradaDiarioDao
     abstract fun alertDao(): AlertDao
+    abstract fun animalDao(): AnimalDao
     abstract fun usuarioDao(): UsuarioDao
+    abstract fun diarioAnimalDao(): EntradaDiarioAnimalDao
 }

@@ -273,13 +273,11 @@
     <string name="chip_other">Otro</string>
 
     <string name="about_title">Acerca de</string>
-    <string name="about_app_name">Huerta Manager</string>
-    <string name="about_version">Versión 1.0.0</string>
-    <string name="about_description">Aplicación para la gestión integral de cultivos, control de plagas y seguimiento de tareas en tu huerto urbano.</string>
-    <string name="about_team_title">Equipo de Desarrollo</string>
-    <string name="about_team_1">Jorge (Frontend &amp; UX)</string>
-    <string name="about_team_2">Ismael (Backend &amp; QA)</string>
-    <string name="about_copyright">© 2026 Proyecto Huerto manager</string>
+    <string name="about_app_name">AgroFather</string> <string name="about_version">Versión 1.0.0</string>
+    <string name="about_description">Plataforma integral para la gestión digital de explotaciones agropecuarias familiares y trazabilidad de cultivos.</string>
+    <string name="about_team_title">Desarrollado por</string>
+    <string name="about_team_1">Jorge Camacho</string>
+    <string name="about_copyright">© 2026 Proyecto AgroFather</string>
 
     <string name="tip_title">Consejo del Experto:</string>
     <string name="tip_1">Limpia tus herramientas después de cada uso para evitar la propagación de hongos.</string>
@@ -333,4 +331,75 @@
     <string name="time_hour">Hora</string>
     <string name="time_minute">Minutos</string>
     <string name="garden_slot_options">Opciones</string>
+
+    <string name="login_welcome_title">¡Hola de nuevo!</string>
+    <string name="login_welcome_subtitle">Entra para gestionar tu huerto</string>
+    <string name="login_email_hint">Correo electrónico</string>
+    <string name="login_password_hint">Contraseña</string>
+    <string name="login_btn_enter">Entrar</string>
+    <string name="login_btn_guest">Entrar como invitado</string>
+    <string name="login_or">o</string>
+    <string name="login_btn_register">Regístrate</string>
+
+    <string name="animal_type_hen">Gallina</string>
+    <string name="animal_type_dog">Perro</string>
+    <string name="animal_type_goose">Oca</string>
+    <string name="animal_type_partridge">Perdiz</string>
+    <string name="type_animal_feed">Pienso</string>
+
+    <string name="action_collect_eggs">Recoger huevos</string>
+    <string name="product_eggs_name">Huevos</string>
+    <string name="dialog_success_eggs_collected">Huevos guardados en el inventario</string>
+    <string name="add_animal_success">Animal guardado correctamente</string>
+
+    <string name="menu_animals">Animales</string>
+    <string name="animal_type_gallina">Gallina</string>
+    <string name="animal_type_oca">Oca</string>
+    <string name="animal_type_perdiz">Perdiz</string>
+    <string name="animal_type_codorniz">Codorniz</string>
+    <string name="animal_type_pato">Pato</string>
+    <string name="animal_type_other">Otro</string>
+
+    <string name="product_pienso">Pienso</string>
+    <string name="product_egg_gallina">Huevo de Gallina</string>
+    <string name="product_egg_oca">Huevo de Oca</string>
+    <string name="product_egg_perdiz">Huevo de Perdiz</string>
+    <string name="product_egg_codorniz">Huevo de Codorniz</string>
+    <string name="product_egg_pato">Huevo de Pato</string>
+
+    <string name="action_collect_production">Recoger producción de %1$s</string>
+    <string name="action_feed_animal">Echar pienso a %1$s</string>
+    <string name="dialog_feed_title">Alimentar Animales</string>
+    <string name="dialog_feed_hint">Sacos a echar (ej: 1 o 1.5)</string>
+    <string name="btn_feed">Echar Pienso</string>
+
+    <string name="diary_collect_msg">Recogida de %1$s %2$s.</string>
+    <string name="diary_feed_msg">Se han echado %1$s sacos de pienso a las %2$s.</string>
+    <string name="diary_no_pienso_warning">Se intentó alimentar a %1$s pero NO hay PIENSO en el inventario.</string>
+
+    <string name="add_animal_title">Nuevo Animal</string>
+    <string name="add_animal_name_hint">Nombre (ej: Bibi)</string>
+    <string name="add_animal_type_hint">Tipo de animal</string>
+    <string name="add_animal_is_layer">¿Es ponedora? (Produce huevos)</string>
+    <string name="add_animal_btn_save">Guardar Animal</string>
+    <string name="farm_management_title">Gestión de Granja</string>
+    <string name="farm_empty_msg">No hay cercados ni animales. ¡Añade el primero!</string>
+    <string name="cercado_format">Cercado %1$d: %2$s</string>
+    <string name="cercado_dropdown_format">Cercado %1$d - %2$s</string>
+    <string name="animals_count">Animales: %1$d</string>
+
+    <string name="cercado_label">Cercado</string>
+    <string name="cercado_select_placeholder">Selecciona cercado</string>
+    <string name="add_cercado_title">Nuevo Cercado</string>
+    <string name="cercado_num_hint">Número (ej: 1)</string>
+    <string name="animal_name_label">Nombre</string>
+
+    <string name="action_collect_eggs_from">Recoger huevos de %1$s</string>
+    <string name="action_feed_cercado">Alimentar todo el Cercado</string>
+    <string name="edit_animal_title">Editar Animal</string>
+    <string name="feed_cercado_title">Echar Pienso al Cercado</string>
+    <string name="feed_sacks_hint">Sacos (ej: 1.5)</string>
+    <string name="dialog_collect_eggs_title">Recoger Producción</string>
+    <string name="dialog_collect_eggs_hint">Cantidad recogida</string>
+    <string name="cercado_name_hint">Nombre (ej: Norte)</string>
 </resources>

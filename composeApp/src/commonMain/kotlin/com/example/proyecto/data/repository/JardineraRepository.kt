@@ -640,4 +640,71 @@ class JardineraRepository(
     suspend fun borrarDatosLocales() {
         usuarioDao.borrarTodo()
     }
+
+    suspend fun plantarSemillaAutomatizado(bancalId: Long, productoId: Long) {
+        // 1. Verificamos que haya stock de la semilla
+        val semilla = productoDao.getProductoById(productoId) ?: return
+        if (semilla.stock <= 0) return
+
+        // 2. Restamos 1 unidad del inventario
+        productoDao.updateProducto(semilla.copy(stock = semilla.stock - 1.0))
+
+        // 3. Actualizamos el bancal con los datos de la planta
+        val bancal = bancalDao.getBancalById(bancalId) ?: return
+        bancalDao.updateBancal(bancal.copy(
+            nombreCultivo = semilla.nombre,
+            perenualId = semilla.perenualId,
+            imagenUrl = semilla.imagenUrl,
+            fechaSiembra = System.currentTimeMillis()
+            // Aquí podrías copiar frecuenciaRiegoDias y necesidadSol si los tienes en ProductoEntity
+        ))
+
+        // 4. Registramos la acción en el Diario automáticamente
+        diarioDao.insertEntrada(EntradaDiarioEntity(
+            bancalId = bancalId,
+            tipoAccion = "SIEMBRA",
+            descripcion = "Siembra automatizada de ${semilla.nombre}.",
+            fecha = System.currentTimeMillis()
+        ))
+    }
+
+    suspend fun cosecharBancalAutomatizado(bancalId: Long, cantidad: Double) {
+        val bancal = bancalDao.getBancalById(bancalId) ?: return
+        val nombreCultivo = bancal.nombreCultivo ?: "Cosecha"
+
+        // 1. Añadimos la cosecha al inventario (o actualizamos si ya existe)
+        val productosList = productoDao.getAllProductos().first()
+        val prodExistente = productosList.find {
+            it.nombre.equals(nombreCultivo, ignoreCase = true) && it.categoria != "SEED"
+        }
+
+        if (prodExistente != null) {
+            productoDao.updateProducto(prodExistente.copy(stock = prodExistente.stock + cantidad))
+        } else {
+            productoDao.insertProducto(ProductoEntity(
+                nombre = nombreCultivo,
+                categoria = "VEGETABLE", // Lo guardamos como vegetal/hortaliza
+                stock = cantidad,
+                imagenUrl = bancal.imagenUrl
+            ))
+        }
+
+        // 2. Limpiamos el bancal para el siguiente uso
+        bancalDao.updateBancal(bancal.copy(
+            nombreCultivo = null,
+            perenualId = null,
+            fechaSiembra = null,
+            imagenUrl = null,
+            frecuenciaRiegoDias = null,
+            necesidadSol = null
+        ))
+
+        // 3. Registramos la cosecha en el Diario
+        diarioDao.insertEntrada(EntradaDiarioEntity(
+            bancalId = bancalId,
+            tipoAccion = "COSECHA",
+            descripcion = "Recolectado: $cantidad kg/uds de $nombreCultivo.",
+            fecha = System.currentTimeMillis()
+        ))
+    }
 }

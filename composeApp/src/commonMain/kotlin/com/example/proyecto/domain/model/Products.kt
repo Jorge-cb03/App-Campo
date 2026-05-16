@@ -1,6 +1,6 @@
 package com.example.proyecto.domain.model
 
-enum class ProductType { TOOL, SEED, CHEMICAL, FERTILIZER, VEGETABLE, OTHER }
+enum class ProductType { TOOL, SEED, CHEMICAL, FERTILIZER, VEGETABLE, PIENSO, OTHER }
 
 data class InventoryItem(
     val id: String,

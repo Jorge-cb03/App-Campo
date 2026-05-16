@@ -4,14 +4,13 @@ import android.annotation.SuppressLint
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.tasks.await
-import com.example.proyecto.MainActivity
-import android.content.Context
-import org.koin.java.KoinJavaComponent.getKoin
+import com.example.proyecto.data.database.appContext // <-- Este import es vital
 
+// Aquí va la implementación real de Android (actual)
 actual class LocationProvider actual constructor() {
-    private val context: Context by lazy { getKoin().get() } // Obtiene el contexto de Koin
+
     private val fusedLocationClient by lazy {
-        LocationServices.getFusedLocationProviderClient(context)
+        LocationServices.getFusedLocationProviderClient(appContext)
     }
 
     @SuppressLint("MissingPermission")

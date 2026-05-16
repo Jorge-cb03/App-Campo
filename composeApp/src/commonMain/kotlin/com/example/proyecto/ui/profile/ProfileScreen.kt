@@ -34,8 +34,6 @@ import androidx.navigation.NavController
 import com.example.proyecto.ui.HuertaInput
 import com.example.proyecto.ui.garden.GardenViewModel
 import com.example.proyecto.ui.navigation.AppScreens
-import com.example.proyecto.ui.theme.GreenPrimary
-import com.example.proyecto.ui.theme.RedDanger
 import com.example.proyecto.util.MediaManager
 import org.jetbrains.compose.resources.stringResource
 import huertomanager.composeapp.generated.resources.*
@@ -73,14 +71,17 @@ fun ProfileScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-
+        // Fondo con degradado sutil en la parte superior
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(200.dp)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(GreenPrimary.copy(alpha = 0.8f), GreenPrimary.copy(alpha = 0.1f), Color.Transparent)
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            MaterialTheme.colorScheme.background
+                        )
                     )
                 )
         )
@@ -92,17 +93,18 @@ fun ProfileScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(60.dp))
+            Spacer(Modifier.height(64.dp))
 
+            // Avatar Minimalista
             Box(contentAlignment = Alignment.BottomEnd) {
                 Surface(
                     modifier = Modifier
-                        .size(140.dp)
-                        .border(4.dp, MaterialTheme.colorScheme.background, CircleShape)
+                        .size(130.dp)
                         .clip(CircleShape)
                         .clickable { showPhotoOptions = true },
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    shadowElevation = 8.dp
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                    shape = CircleShape
                 ) {
                     if (profilePhotoBytes != null) {
                         val bitmap = BitmapFactory.decodeByteArray(profilePhotoBytes, 0, profilePhotoBytes!!.size)
@@ -116,69 +118,69 @@ fun ProfileScreen(
                         Icon(
                             Icons.Default.Person,
                             null,
-                            modifier = Modifier.padding(30.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            modifier = Modifier.padding(32.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                         )
                     }
                 }
 
+                // Botón Cámara pequeño y flotante
                 Surface(
                     shape = CircleShape,
-                    color = GreenPrimary,
-                    shadowElevation = 4.dp,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .padding(bottom = 8.dp, end = 8.dp)
-                        .size(40.dp)
-                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+                        .size(36.dp)
+                        .border(3.dp, MaterialTheme.colorScheme.background, CircleShape)
                         .clickable { showPhotoOptions = true }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.CameraAlt, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
+            // Nombre y Email
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = if(userName == "Usuario") stringResource(Res.string.profile_user_default) else userName,
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                IconButton(onClick = {
-                    tempName = userName
-                    showEditNameDialog = true
-                }) {
-                    Icon(Icons.Default.Edit, null, tint = GreenPrimary, modifier = Modifier.size(18.dp))
+                IconButton(
+                    onClick = { tempName = userName; showEditNameDialog = true },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 }
             }
 
             Text(
                 text = userEmail,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(40.dp))
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            // Sección de Ajustes
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = stringResource(Res.string.profile_settings),
+                    text = stringResource(Res.string.profile_settings).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = GreenPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 1.sp,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
                 )
 
                 Card(
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                         SettingItem(
@@ -189,30 +191,33 @@ fun ProfileScreen(
                                 Switch(
                                     checked = isDarkTheme,
                                     onCheckedChange = onToggleTheme,
-                                    colors = SwitchDefaults.colors(checkedThumbColor = GreenPrimary, checkedTrackColor = GreenPrimary.copy(0.5f))
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                        checkedTrackColor = MaterialTheme.colorScheme.primary
+                                    )
                                 )
                             }
                         )
 
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
                         SettingItem(
                             icon = Icons.Default.Info,
                             title = stringResource(Res.string.about_title),
-                            iconColor = Color(0xFF81C784),
+                            iconColor = MaterialTheme.colorScheme.secondary,
                             onClick = { navController.navigate(AppScreens.About) }
                         )
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(32.dp))
 
-                OutlinedButton(
+                // Botón Cerrar Sesión Minimalista
+                TextButton(
                     onClick = { showLogoutDialog = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, RedDanger.copy(alpha = 0.5f)),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = RedDanger)
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(Icons.Default.Logout, null, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
@@ -220,15 +225,16 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(100.dp))
+            Spacer(Modifier.height(60.dp))
         }
     }
+
+    // --- DIÁLOGOS REDISEÑADOS (M3) ---
 
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
-            title = { Text(stringResource(Res.string.profile_edit_dialog_title)) },
-            // MEJORA: Tic de Hecho explícito
+            title = { Text(stringResource(Res.string.profile_edit_dialog_title), fontWeight = FontWeight.Bold) },
             text = { HuertaInput(tempName, { tempName = it }, stringResource(Res.string.profile_new_name_hint), Icons.Default.Person, imeAction = ImeAction.Done) },
             confirmButton = {
                 Button(
@@ -240,54 +246,52 @@ fun ProfileScreen(
                             showSuccessDialog = true
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+                    shape = RoundedCornerShape(12.dp)
                 ) { Text(stringResource(Res.string.btn_save)) }
             },
             dismissButton = { TextButton(onClick = { showEditNameDialog = false }) { Text(stringResource(Res.string.btn_cancel)) } },
             containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(28.dp)
         )
     }
 
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text(stringResource(Res.string.dialog_success_title)) },
+            title = { Text(stringResource(Res.string.dialog_success_title), fontWeight = FontWeight.Bold) },
             text = { Text(msgUpdated) },
-            confirmButton = { Button(onClick = { showSuccessDialog = false }) { Text(stringResource(Res.string.dialog_btn_ok)) } }
+            confirmButton = { Button(onClick = { showSuccessDialog = false }, shape = RoundedCornerShape(12.dp)) { Text(stringResource(Res.string.dialog_btn_ok)) } },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(28.dp)
         )
     }
 
     if (showPhotoOptions) {
         Dialog(onDismissRequest = { showPhotoOptions = false }) {
             Surface(
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(32.dp),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 modifier = Modifier.padding(16.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(Icons.Default.PhotoCamera, null, tint = GreenPrimary, modifier = Modifier.size(40.dp))
-                    Spacer(Modifier.height(16.dp))
                     Text(
                         text = stringResource(Res.string.profile_change_photo_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(24.dp))
 
                     Button(
                         onClick = { launcher.launchCamera(); showPhotoOptions = false },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(Icons.Outlined.CameraAlt, null)
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(12.dp))
                         Text(stringResource(Res.string.diary_btn_take_photo), fontWeight = FontWeight.Bold)
                     }
 
@@ -295,19 +299,19 @@ fun ProfileScreen(
 
                     OutlinedButton(
                         onClick = { launcher.launchGallery(); showPhotoOptions = false },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Icon(Icons.Outlined.Image, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(Res.string.diary_btn_gallery))
+                        Spacer(Modifier.width(12.dp))
+                        Text(stringResource(Res.string.diary_btn_gallery), color = MaterialTheme.colorScheme.onSurface)
                     }
 
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(24.dp))
 
                     TextButton(onClick = { showPhotoOptions = false }) {
-                        Text(stringResource(Res.string.btn_cancel), color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                        Text(stringResource(Res.string.btn_cancel), color = MaterialTheme.colorScheme.secondary)
                     }
                 }
             }
@@ -317,21 +321,18 @@ fun ProfileScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            icon = { Icon(Icons.Default.Warning, null, tint = RedDanger) },
-            title = { Text(stringResource(Res.string.profile_logout)) },
-            text = { Text(stringResource(Res.string.profile_logout_msg), textAlign = androidx.compose.ui.text.style.TextAlign.Center) },
+            icon = { Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(stringResource(Res.string.profile_logout), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.profile_logout_msg)) },
             confirmButton = {
                 Button(
                     onClick = {
-                        // OJO: Comenté la lógica de viewModel.cerrarSesion si no existe,
-                        // pero la mantengo si tú la tenías. Aquí solo cambio el UI.
-                        // viewModel.cerrarSesion { ... }
                         showLogoutDialog = false
                         navController.navigate(AppScreens.Login) {
                             popUpTo(0) { inclusive = true }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = RedDanger),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(12.dp)
                 ) { Text(stringResource(Res.string.btn_confirm)) }
             },
@@ -339,7 +340,7 @@ fun ProfileScreen(
                 TextButton(onClick = { showLogoutDialog = false }) { Text(stringResource(Res.string.btn_cancel)) }
             },
             containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(28.dp)
         )
     }
 }
@@ -356,15 +357,15 @@ fun SettingItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(
                 shape = CircleShape,
-                color = iconColor.copy(alpha = 0.15f),
-                modifier = Modifier.size(40.dp)
+                color = iconColor.copy(alpha = 0.12f),
+                modifier = Modifier.size(42.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(icon, null, tint = iconColor, modifier = Modifier.size(20.dp))
@@ -377,7 +378,7 @@ fun SettingItem(
         if (trailingContent != null) {
             trailingContent()
         } else {
-            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
         }
     }
 }

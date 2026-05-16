@@ -2,21 +2,35 @@ package com.example.proyecto.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- PALETA BASE (Huerta Style) ---
-val GreenPrimary = Color(0xFF5F9F70)       // Verde Principal
-val GreenSecondary = Color(0xFF4DB6AC)     // Verde Azulado (Salud)
-val RedDanger = Color(0xFFE57373)          // Rojo Alerta
+// ==================================================================
+// PALETA MODERNA MINIMALISTA
+// ==================================================================
 
-// --- MODO OSCURO (Referencia Imágenes) ---
-val DarkBg = Color(0xFF121212)
-val DarkSurface = Color(0xFF1E1E1E)
-val DarkInput = Color(0xFF2C2C2E)
-val DarkTextMain = Color(0xFFFFFFFF)
-val DarkTextSec = Color(0xFFA0A0A0)
+// Color de Acento (Un verde esmeralda vibrante y tecnológico)
+val MinimalAccent = Color(0xFF10B981)
 
-// --- MODO CLARO (Adaptación Legible) ---
-val LightBg = Color(0xFFF5F7F8)            // Gris muy suave
-val LightSurface = Color(0xFFFFFFFF)       // Blanco puro
-val LightInput = Color(0xFFE0E0E0)
-val LightTextMain = Color(0xFF121212)
-val LightTextSec = Color(0xFF666666)
+// Escala de Grises (Modo Claro)
+val LightBackground = Color(0xFFF8FAFC) // Blanco roto muy limpio
+val LightSurface = Color(0xFFFFFFFF)    // Blanco puro
+val LightText = Color(0xFF0F172A)       // Casi negro
+val LightTextSecondary = Color(0xFF64748B)
+val LightOutline = Color(0xFFE2E8F0)    // Bordes sutiles
+
+// Escala de Grises (Modo Oscuro)
+val DarkBackground = Color(0xFF0F172A)  // Azul noche muy oscuro
+val DarkSurface = Color(0xFF1E293B)     // Gris oscuro
+val DarkText = Color(0xFFF8FAFC)        // Blanco
+val DarkTextSecondary = Color(0xFF94A3B8)
+val DarkOutline = Color(0xFF334155)
+val TierraSlot = Color(0xFFEFEBE9)
+
+// NUEVO: Marrón oscuro para modo noche (resalta sobre el fondo azul noche)
+val TierraSlotDark = Color(0xFF3E2723)
+val TierraSlotBorder = Color(0xFFD7CCC8)
+
+// ==================================================================
+// COMPATIBILIDAD (Para que la app no crashee)
+// ==================================================================
+val GreenPrimary = MinimalAccent
+val GreenSecondary = Color(0xFFD1FAE5) // Esmeralda muy claro
+val RedDanger = Color(0xFFEF4444)      // Rojo moderno y limpio

@@ -13,6 +13,6 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> {
         context = appContext,
         name = dbFile.absolutePath
     )
-        .fallbackToDestructiveMigration(true) // <--- ESTO EVITA EL CRASH AL CAMBIAR DE VERSIÓN
+        .fallbackToDestructiveMigration(true)
         .setDriver(AndroidSQLiteDriver())
 }

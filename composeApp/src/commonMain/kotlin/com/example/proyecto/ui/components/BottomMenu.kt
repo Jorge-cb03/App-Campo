@@ -1,19 +1,21 @@
 package com.example.proyecto.ui.components
 
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.proyecto.ui.navigation.AppScreens
-import com.example.proyecto.ui.theme.GreenPrimary // IMPORTANTE: Asegúrate de que esta ruta es correcta
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import huertomanager.composeapp.generated.resources.*
@@ -21,8 +23,9 @@ import huertomanager.composeapp.generated.resources.*
 sealed class BottomNavItem(val resource: StringResource, val icon: ImageVector, val route: String) {
     object Home : BottomNavItem(Res.string.menu_home, Icons.Default.Home, AppScreens.Home)
     object Garden : BottomNavItem(Res.string.menu_garden, Icons.Default.Eco, "garden/0")
-    object Diary : BottomNavItem(Res.string.menu_diary, Icons.Default.Edit, AppScreens.Diary)
-    object Products : BottomNavItem(Res.string.menu_products, Icons.Default.ShoppingCart, AppScreens.Products)
+    object Diary : BottomNavItem(Res.string.menu_diary, Icons.Default.CalendarMonth, AppScreens.Diary)
+    object Animals : BottomNavItem(Res.string.menu_animals, Icons.Default.Pets, AppScreens.Animals)
+    object Products : BottomNavItem(Res.string.menu_products, Icons.Default.Inventory2, AppScreens.Products)
     object Profile : BottomNavItem(Res.string.menu_profile, Icons.Default.Person, AppScreens.Profile)
 }
 
@@ -31,53 +34,69 @@ fun BottomMenu(navController: NavController) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Garden,
+        BottomNavItem.Animals,
         BottomNavItem.Diary,
         BottomNavItem.Products,
         BottomNavItem.Profile
     )
 
     NavigationBar(
-        containerColor = Color.Transparent,
-        tonalElevation = 0.dp,
-        modifier = Modifier.navigationBarsPadding()
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp,
+        modifier = Modifier.navigationBarsPadding(),
+        windowInsets = NavigationBarDefaults.windowInsets
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
+        val currentRoute = navBackStackEntry?.destination?.route ?: ""
 
         items.forEach { item ->
             val title = stringResource(item.resource)
 
             val isSelected = when (item) {
                 BottomNavItem.Home -> currentRoute == AppScreens.Home || currentRoute == AppScreens.Alerts
-                BottomNavItem.Garden -> currentRoute?.contains("garden") == true
-                BottomNavItem.Diary -> currentRoute?.contains("diary") == true
-                BottomNavItem.Products -> currentRoute?.contains("product") == true
+                BottomNavItem.Garden -> currentRoute.contains("garden") || currentRoute.contains("jardinera") || currentRoute.contains("bancal")
+                BottomNavItem.Animals -> currentRoute.contains("animal")
+                BottomNavItem.Diary -> currentRoute.contains("diary") || currentRoute.contains("add_diary")
+                BottomNavItem.Products -> currentRoute.contains("product") || currentRoute.contains("add_prod")
                 BottomNavItem.Profile -> currentRoute == AppScreens.Profile || currentRoute == AppScreens.About
             }
 
             NavigationBarItem(
-                icon = { Icon(item.icon, contentDescription = title) },
-                label = { Text(title) },
+                icon = { Icon(imageVector = item.icon, contentDescription = title, modifier = Modifier.size(24.dp)) },
+                label = {
+                    Text(
+                        text = title, style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
                 selected = isSelected,
-                // --- CORRECCIÓN DE COLORES ---
+                alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
-                    // Color de la "píldora" de fondo cuando está seleccionado (Verde suave)
-                    indicatorColor = GreenPrimary.copy(alpha = 0.2f),
-                    // Color del icono cuando está seleccionado (Verde sólido)
-                    selectedIconColor = GreenPrimary,
-                    // Color del texto cuando está seleccionado (Verde sólido)
-                    selectedTextColor = GreenPrimary,
-                    // Colores cuando no está seleccionado (Grisáceo del tema)
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 ),
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(AppScreens.Home) {
-                            saveState = false
+                    if (isSelected) {
+                        // REGLA 1: ESTAMOS EN LA MISMA PESTAÑA
+                        // Si pulsamos "Home" estando en "Alertas", nos devuelve al "Home" limpio.
+                        // Si ya estamos en "Home" exactamente, no hace nada (evita parpadeos).
+                        if (currentRoute != item.route) {
+                            navController.popBackStack(item.route, inclusive = false)
                         }
-                        launchSingleTop = true
-                        restoreState = false
+                    } else {
+                        // REGLA 2: CAMBIAMOS DE PESTAÑA
+                        navController.navigate(item.route) {
+                            // Usamos el ID de inicio del Grafo (el estándar de Android)
+                            // Esto evita que el Home se pelee consigo mismo
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 }
             )

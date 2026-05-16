@@ -110,13 +110,6 @@ fun AboutScreen(navController: NavController) {
                     Spacer(Modifier.width(16.dp))
                     Text(stringResource(Res.string.about_team_1), fontWeight = FontWeight.Medium)
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Avatar simulado 2
-                    Surface(shape = CircleShape, color = Color.Gray, modifier = Modifier.size(40.dp)) {}
-                    Spacer(Modifier.width(16.dp))
-                    Text(stringResource(Res.string.about_team_2), fontWeight = FontWeight.Medium)
-                }
             }
 
             Spacer(Modifier.weight(1f))

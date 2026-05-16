@@ -1,5 +1,6 @@
 package com.example.proyecto.ui.products
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,96 +20,86 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.proyecto.data.database.entity.ProductoEntity
+import com.example.proyecto.domain.model.ProductType
 import com.example.proyecto.ui.garden.GardenViewModel
 import com.example.proyecto.ui.navigation.AppScreens
-import com.example.proyecto.ui.theme.GreenPrimary
 import com.example.proyecto.ui.theme.RedDanger
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import huertomanager.composeapp.generated.resources.*
 import org.koin.compose.viewmodel.koinViewModel
 
+// ESTA FUNCIÓN SOLO DEBE ESTAR AQUÍ
+fun getLocalizedTypeName(type: ProductType): StringResource {
+    return when (type) {
+        ProductType.SEED -> Res.string.type_seed
+        ProductType.TOOL -> Res.string.type_tool
+        ProductType.FERTILIZER -> Res.string.type_fertilizer
+        ProductType.CHEMICAL -> Res.string.type_chemical
+        ProductType.VEGETABLE -> Res.string.type_vegetable
+        ProductType.PIENSO -> Res.string.type_animal_feed
+        ProductType.OTHER -> Res.string.type_other
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductsScreen(navController: NavController, viewModel: GardenViewModel = koinViewModel()) {
-    val productosState = viewModel.getProductos().collectAsState(initial = emptyList())
-    val productos = productosState.value
+    val productos by viewModel.getProductos().collectAsState(initial = emptyList())
     var searchQuery by remember { mutableStateOf("") }
-
-    var showDeleteConfirm by remember { mutableStateOf<Long?>(null) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
     var productOptions by remember { mutableStateOf<ProductoEntity?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf<Long?>(null) }
 
-    val msgDeleted = stringResource(Res.string.dialog_success_product_deleted)
     val filteredProducts = productos.filter { it.nombre.contains(searchQuery, ignoreCase = true) && it.stock > 0 }
 
     Scaffold(
-        // CORRECCIÓN: Fondo transparente e insets a 0 para pegar la vista al Navbar
-        containerColor = Color.Transparent,
-        contentWindowInsets = WindowInsets(0),
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(AppScreens.AddProduct) },
-                containerColor = GreenPrimary,
-                contentColor = Color.White
-            ) { Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.products_add_fab)) }
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) { Icon(Icons.Default.Add, null) }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(Res.string.products_title),
-                style = MaterialTheme.typography.headlineMedium,
-                color = GreenPrimary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
+            Spacer(Modifier.height(20.dp))
+            Text("Inventario", fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
 
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text(stringResource(Res.string.products_search_hint)) },
+                placeholder = { Text("Buscar...") },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(Modifier.height(16.dp))
 
-            if (filteredProducts.isEmpty()) {
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(Res.string.products_empty), color = Color.Gray)
-                }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f), // Forzamos a que el grid use todo el espacio
-                    contentPadding = PaddingValues(bottom = 80.dp) // Espacio para que el FAB no tape el último item
-                ) {
-                    items(filteredProducts) { producto ->
-                        ProductItemCard(
-                            name = producto.nombre,
-                            quantity = producto.stock,
-                            type = producto.categoria,
-                            imageUrl = producto.imagenUrl,
-                            onClick = { navController.navigate(AppScreens.createProductDetailRoute(producto.id.toString())) },
-                            onLongClick = { productOptions = producto },
-                            onIncrease = { viewModel.updateStock(producto.id, producto.stock + 1) },
-                            onDecrease = { viewModel.updateStock(producto.id, (producto.stock - 1).coerceAtLeast(0.0)) }
-                        )
-                    }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(filteredProducts) { producto ->
+                    ProductItemCard(
+                        name = producto.nombre,
+                        quantity = producto.stock,
+                        type = producto.categoria,
+                        imageUrl = producto.imagenUrl,
+                        onClick = { navController.navigate(AppScreens.createProductDetailRoute(producto.id.toString())) },
+                        onLongClick = { productOptions = producto },
+                        onIncrease = { viewModel.updateStock(producto.id, producto.stock + 1) },
+                        onDecrease = { viewModel.updateStock(producto.id, (producto.stock - 1).coerceAtLeast(0.0)) }
+                    )
                 }
             }
         }
@@ -116,178 +108,47 @@ fun ProductsScreen(navController: NavController, viewModel: GardenViewModel = ko
     if (productOptions != null) {
         AlertDialog(
             onDismissRequest = { productOptions = null },
-            icon = { Icon(Icons.Default.Settings, null, tint = GreenPrimary) },
             title = { Text(productOptions?.nombre ?: "") },
-            text = { Text("¿Qué deseas hacer con este producto?") },
-            confirmButton = {
-                Button(onClick = {
-                    val id = productOptions?.id
-                    productOptions = null
-                    if (id != null) navController.navigate(AppScreens.createEditProductRoute(id))
-                }) {
-                    Text(stringResource(Res.string.btn_edit))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    val id = productOptions?.id
-                    productOptions = null
-                    if (id != null) showDeleteConfirm = id
-                }, colors = ButtonDefaults.textButtonColors(contentColor = RedDanger)) {
-                    Text(stringResource(Res.string.btn_delete))
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface
+            text = { Text("¿Qué deseas hacer?") },
+            confirmButton = { Button(onClick = { val id = productOptions?.id; productOptions = null; if (id != null) navController.navigate(AppScreens.createEditProductRoute(id)) }) { Text("Editar") } },
+            dismissButton = { TextButton(onClick = { val id = productOptions?.id; productOptions = null; if (id != null) showDeleteConfirm = id }, colors = ButtonDefaults.textButtonColors(contentColor = RedDanger)) { Text("Eliminar") } }
         )
     }
 
     if (showDeleteConfirm != null) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = null },
-            icon = { Icon(Icons.Default.Warning, null, tint = RedDanger) },
-            title = { Text(stringResource(Res.string.product_delete_confirm)) },
-            text = { Text(stringResource(Res.string.product_delete_msg)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.eliminarProducto(showDeleteConfirm!!)
-                        showDeleteConfirm = null
-                        showSuccessDialog = true
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = RedDanger)
-                ) { Text(stringResource(Res.string.btn_delete)) }
-            },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = null }) { Text(stringResource(Res.string.btn_cancel)) } }
-        )
-    }
-
-    if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { showSuccessDialog = false },
-            title = { Text(stringResource(Res.string.dialog_success_title)) },
-            text = { Text(msgDeleted) },
-            confirmButton = { Button(onClick = { showSuccessDialog = false }) { Text(stringResource(Res.string.dialog_btn_ok)) } }
+            title = { Text("Confirmar") },
+            text = { Text("¿Seguro que deseas eliminar este producto?") },
+            confirmButton = { Button(onClick = { viewModel.eliminarProducto(showDeleteConfirm!!); showDeleteConfirm = null }, colors = ButtonDefaults.buttonColors(containerColor = RedDanger)) { Text("Eliminar") } },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = null }) { Text("Cancelar") } }
         )
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProductItemCard(
-    name: String,
-    quantity: Double,
-    type: String,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    onIncrease: () -> Unit,
-    onDecrease: () -> Unit,
-    imageUrl: String? = null
-) {
+fun ProductItemCard(name: String, quantity: Double, type: String, onClick: () -> Unit, onLongClick: () -> Unit, onIncrease: () -> Unit, onDecrease: () -> Unit, imageUrl: String? = null) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Box {
-            Column(modifier = Modifier.padding(16.dp)) {
-                val headerModifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(12.dp))
-
-                if (!imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = name,
-                        modifier = headerModifier,
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    val icon = when {
-                        type.contains("SEED", true) -> Icons.Default.Grass
-                        type.contains("VEGETABLE", true) -> Icons.Default.Eco
-                        type.contains("FERTILIZER", true) -> Icons.Default.Science
-                        type.contains("TOOL", true) -> Icons.Default.Build
-                        else -> Icons.Default.Inventory
-                    }
-
-                    Box(
-                        modifier = headerModifier
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = GreenPrimary,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    fontSize = 18.sp
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    FilledIconButton(
-                        onClick = onDecrease,
-                        enabled = quantity > 0,
-                        modifier = Modifier.size(32.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Icon(Icons.Default.Remove, contentDescription = stringResource(Res.string.products_decrease), modifier = Modifier.size(16.dp))
-                    }
-
-                    Text(
-                        text = if (quantity % 1.0 == 0.0) quantity.toInt().toString() else quantity.toString(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (quantity <= 3.0) RedDanger else GreenPrimary,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    FilledIconButton(
-                        onClick = onIncrease,
-                        modifier = Modifier.size(32.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = GreenPrimary)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.products_increase), tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
+        Column(modifier = Modifier.padding(12.dp)) {
+            if (!imageUrl.isNullOrBlank()) {
+                AsyncImage(model = imageUrl, contentDescription = null, modifier = Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+            } else {
+                Box(modifier = Modifier.fillMaxWidth().height(100.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Inventory, null, tint = MaterialTheme.colorScheme.primary)
                 }
             }
-
-            if (type.contains("VEGETABLE", true)) {
-                Surface(
-                    color = GreenPrimary,
-                    shape = RoundedCornerShape(bottomStart = 12.dp),
-                    modifier = Modifier.align(Alignment.TopEnd)
-                ) {
-                    Text(
-                        text = stringResource(Res.string.chip_harvest).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
+            Spacer(Modifier.height(8.dp))
+            Text(name, fontWeight = FontWeight.Bold, maxLines = 1)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                IconButton(onClick = onDecrease, modifier = Modifier.size(28.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) { Icon(Icons.Default.Remove, null, modifier = Modifier.size(16.dp)) }
+                Text(if (quantity % 1.0 == 0.0) quantity.toInt().toString() else quantity.toString(), fontWeight = FontWeight.Bold)
+                IconButton(onClick = onIncrease, modifier = Modifier.size(28.dp).background(MaterialTheme.colorScheme.primary.copy(0.1f), CircleShape)) { Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) }
             }
         }
     }

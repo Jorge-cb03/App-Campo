@@ -273,13 +273,11 @@
     <string name="chip_other">Other</string>
 
     <string name="about_title">About</string>
-    <string name="about_app_name">Huerta Manager</string>
-    <string name="about_version">Version 1.0.0</string>
-    <string name="about_description">Application for comprehensive crop management, pest control, and task tracking in your urban garden.</string>
-    <string name="about_team_title">Development Team</string>
-    <string name="about_team_1">Jorge (Frontend &amp; UX)</string>
-    <string name="about_team_2">Ismael (Backend &amp; QA)</string>
-    <string name="about_copyright">© 2026 Huerta Manager Project</string>
+    <string name="about_app_name">AgroFather</string>
+    <string name="about_description">Comprehensive platform for the digital management of family farms and crop traceability.</string>
+    <string name="about_team_title">Developed by</string>
+    <string name="about_team_1">Jorge Camacho</string>
+    <string name="about_copyright">© 2026 AgroFather Project</string>
 
     <string name="tip_title">Expert Tip:</string>
     <string name="tip_1">Clean your tools after each use to prevent the spread of fungi.</string>
@@ -332,4 +330,56 @@
 
     <string name="time_hour">Hour</string>
     <string name="time_minute">Minutes</string>
+    <string name="login_welcome_title">Hello again!</string>
+    <string name="login_welcome_subtitle">Login to manage your garden</string>
+    <string name="login_email_hint">Email</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_btn_enter">Enter</string>
+    <string name="login_btn_guest">Login as guest</string>
+    <string name="login_or">or</string>
+    <string name="login_btn_register">Register</string>
+
+    <string name="menu_animals">Animals</string>
+    <string name="animal_type_hen">Chicken</string>
+    <string name="animal_type_dog">Dog</string>
+    <string name="animal_type_goose">Goose</string>
+    <string name="animal_type_partridge">Partridge</string>
+    <string name="animal_type_other">Other</string>
+    <string name="type_animal_feed">Animal feed</string>
+    <string name="action_collect_eggs">Collect eggs</string>
+    <string name="product_eggs_name">Eggs</string>
+    <string name="dialog_success_eggs_collected">Eggs saved in inventory</string>
+    <string name="action_collect_production">Collect %1$s production</string>
+    <string name="action_feed_animal">Feed %1$s</string>
+    <string name="dialog_feed_title">Feed Animals</string>
+    <string name="dialog_feed_hint">Sacks to add (ex: 1 or 1.5)</string>
+    <string name="btn_feed">Feed</string>
+
+    <string name="product_egg_gallina">Chicken Egg</string>
+    <string name="product_egg_oca">Goose Egg</string>
+    <string name="product_pienso">Feed</string>
+
+    <string name="diary_collect_msg">Collected %1$s %2$s.</string>
+    <string name="diary_feed_msg">Added %1$s sacks of feed to %2$s.</string>
+    <string name="diary_no_pienso_warning">Tried to feed %1$s but NO FEED in inventory.</string>
+    <string name="farm_management_title">Farm Management</string>
+    <string name="farm_empty_msg">No fences or animals yet. Add the first one!</string>
+    <string name="cercado_format">Fence %1$d: %2$s</string>
+    <string name="cercado_dropdown_format">Fence %1$d - %2$s</string>
+    <string name="animals_count">Animals: %1$d</string>
+
+    <string name="cercado_label">Fence</string>
+    <string name="cercado_select_placeholder">Select fence</string>
+    <string name="add_cercado_title">New Fence</string>
+    <string name="cercado_num_hint">Number (e.g., 1)</string>
+    <string name="animal_name_label">Name</string>
+
+    <string name="action_collect_eggs_from">Collect %1$s eggs</string>
+    <string name="action_feed_cercado">Feed entire Fence</string>
+    <string name="edit_animal_title">Edit Animal</string>
+    <string name="feed_cercado_title">Add Feed to Fence</string>
+    <string name="feed_sacks_hint">Sacks (e.g., 1.5)</string>
+    <string name="dialog_collect_eggs_title">Collect Production</string>
+    <string name="dialog_collect_eggs_hint">Amount collected</string>
+    <string name="cercado_name_hint">Name (e.g., North)</string>
 </resources>
