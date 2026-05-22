@@ -382,4 +382,21 @@
     <string name="dialog_collect_eggs_title">Collect Production</string>
     <string name="dialog_collect_eggs_hint">Amount collected</string>
     <string name="cercado_name_hint">Name (e.g., North)</string>
+    <string name="edit_cercado_title">Edit Fence</string>
+    <string name="edit_farm_entry_title">Edit Farm Log</string>
+
+    <string name="conflict_warning_title">⚠️ Compatibility Conflict</string>
+    <string name="conflict_dog_to_birds">Warning! You are adding a Sheepdog to a fence with birds. Dogs can scare, chase, or attack chickens, geese, ducks, or partridges. Are you sure?</string>
+    <string name="conflict_birds_to_dog">Warning! You are putting birds in a fence where a Sheepdog lives. There is a risk of conflict or attacks. Do you want to continue?</string>
+
+    <string name="confirm_delete_animal_title">Delete Animal?</string>
+    <string name="confirm_delete_animal_msg">Are you sure you want to delete this animal? This action will record a permanent removal in the farm log.</string>
+
+    <string name="success_title">Operation Successful!</string>
+    <string name="success_animal_added">The animal has been successfully registered and assigned to the fence.</string>
+    <string name="success_cercado_created">The new fence has been successfully created in the database.</string>
+    <string name="success_animal_deleted">The animal has been removed and recorded in the diary.</string>
+    <string name="success_animal_edited">The animal\'s data has been updated successfully.</string>
+    <string name="success_eggs_collected">Production recorded! The eggs have been added to the product inventory.</string>
+    <string name="success_feed_given">Feeding recorded! The feed has been deducted from the inventory.</string>
 </resources>

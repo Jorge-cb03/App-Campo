@@ -17,7 +17,7 @@ import com.example.proyecto.data.database.entity.*
         AnimalEntity::class,
         UsuarioEntity::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

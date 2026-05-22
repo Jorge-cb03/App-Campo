@@ -4,5 +4,9 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+    <string>Necesitamos la cámara para que puedas hacer fotos de tus animales y cultivos.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Necesitamos acceso a la galería para que puedas elegir fotos de tus productos.</string>
 </dict>
 </plist>

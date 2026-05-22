@@ -45,7 +45,11 @@ fun AnimalGroupDetailScreen(
     val animalesEnCercado = animales.filter { it.cercadoId == cercadoId }
     val animalesAgrupadosPorTipo = animalesEnCercado.groupBy { it.tipo }
 
+    // --- ESTADOS PARA DIÁLOGOS Y REALIMENTACIÓN ---
     var animalAEditar by remember { mutableStateOf<AnimalEntity?>(null) }
+    var animalADeleteConfirm by remember { mutableStateOf<AnimalEntity?>(null) } // Captura para confirmación
+    var successType by remember { mutableStateOf<String?>(null) } // "eggs", "feed", "edited", "deleted"
+
     var showEggDialogForType by remember { mutableStateOf<String?>(null) }
     var showFeedDialog by remember { mutableStateOf(false) }
 
@@ -80,7 +84,12 @@ fun AnimalGroupDetailScreen(
 
                     items(listaAnimales) { animal ->
                         val ficha = viewModel.getFichaPorNombre(animal.tipo)
-                        AnimalIndividualCard(animal, ficha, { animalAEditar = animal }, { viewModel.borrarAnimal(animal) })
+                        AnimalIndividualCard(
+                            animal = animal,
+                            ficha = ficha,
+                            onEdit = { animalAEditar = animal },
+                            onDelete = { animalADeleteConfirm = animal } // Abre diálogo en vez de borrar directo
+                        )
                         Spacer(Modifier.height(8.dp))
                     }
 
@@ -93,7 +102,6 @@ fun AnimalGroupDetailScreen(
                             ) {
                                 Icon(Icons.Default.Egg, null)
                                 Spacer(Modifier.width(8.dp))
-                                // Usamos el stringResource multi-idioma para "Recoger huevos de..."
                                 Text(stringResource(Res.string.action_collect_eggs_from, tipo))
                             }
                             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -102,54 +110,118 @@ fun AnimalGroupDetailScreen(
                 }
             }
 
+            // BOTÓN GENERAL ALIMENTAR (Se bloquea si el cercado está vacío)
             Surface(shadowElevation = 8.dp) {
                 Button(
                     onClick = { showFeedDialog = true },
                     modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
                     shape = RoundedCornerShape(16.dp),
+                    enabled = animalesEnCercado.isNotEmpty(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                 ) {
-                    Icon(Icons.Default.Restaurant, null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Icon(
+                        Icons.Default.Restaurant,
+                        contentDescription = null,
+                        tint = if (animalesEnCercado.isNotEmpty()) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(Modifier.width(8.dp))
-                    // String multi-idioma "Alimentar todo el cercado"
-                    Text(stringResource(Res.string.action_feed_cercado), color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text(
+                        text = stringResource(Res.string.action_feed_cercado),
+                        color = if (animalesEnCercado.isNotEmpty()) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
     }
 
+    // --- Diálogo para Recoger Huevos ---
     if (showEggDialogForType != null && cercadoActual != null) {
         CollectEggsDialog(
             onConfirm = { cantidad ->
                 viewModel.registrarPuestaGrupo(cercadoActual, showEggDialogForType!!, cantidad)
                 showEggDialogForType = null
+                successType = "eggs"
             },
             onDismiss = { showEggDialogForType = null }
         )
     }
 
+    // --- Diálogo para Alimentar ---
     if (showFeedDialog && cercadoActual != null) {
         FeedDialog(
             onConfirm = { sacos ->
                 viewModel.alimentarGrupo(cercadoActual, "Cercado Completo", sacos)
                 showFeedDialog = false
+                successType = "feed"
             },
             onDismiss = { showFeedDialog = false }
         )
     }
 
+    // --- Diálogo para Editar ---
     if (animalAEditar != null) {
         var nuevoNombre by remember { mutableStateOf(animalAEditar!!.nombre) }
         AlertDialog(
             onDismissRequest = { animalAEditar = null },
             title = { Text(stringResource(Res.string.edit_animal_title)) },
             text = { OutlinedTextField(value = nuevoNombre, onValueChange = { nuevoNombre = it }, label = { Text(stringResource(Res.string.animal_name_label)) }) },
-            confirmButton = { TextButton(onClick = { viewModel.editarAnimal(animalAEditar!!, nuevoNombre); animalAEditar = null }) { Text(stringResource(Res.string.btn_save)) } },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.editarAnimal(animalAEditar!!, nuevoNombre)
+                    animalAEditar = null
+                    successType = "edited"
+                }) { Text(stringResource(Res.string.btn_save)) }
+            },
             dismissButton = { TextButton(onClick = { animalAEditar = null }) { Text(stringResource(Res.string.btn_cancel)) } }
         )
     }
-}
 
+    // --- 1. NUEVO DIÁLOGO DE CONFIRMACIÓN DE ELIMINACIÓN ---
+    if (animalADeleteConfirm != null) {
+        AlertDialog(
+            onDismissRequest = { animalADeleteConfirm = null },
+            icon = { Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(stringResource(Res.string.confirm_delete_animal_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.confirm_delete_animal_msg)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.borrarAnimal(animalADeleteConfirm!!)
+                        animalADeleteConfirm = null
+                        successType = "deleted" // Al borrar, dispara éxito
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(Res.string.btn_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { animalADeleteConfirm = null }) { Text(stringResource(Res.string.btn_cancel)) }
+            }
+        )
+    }
+
+    // --- 2. NUEVO DIÁLOGO GENERAL DE OPERACIÓN EXITOSA ---
+    if (successType != null) {
+        AlertDialog(
+            onDismissRequest = { successType = null },
+            title = { Text(stringResource(Res.string.success_title)) },
+            text = {
+                Text(
+                    when (successType) {
+                        "eggs" -> stringResource(Res.string.success_eggs_collected)
+                        "feed" -> stringResource(Res.string.success_feed_given)
+                        "edited" -> stringResource(Res.string.success_animal_edited)
+                        else -> stringResource(Res.string.success_animal_deleted)
+                    }
+                )
+            },
+            confirmButton = {
+                Button(onClick = { successType = null }) {
+                    Text(stringResource(Res.string.btn_confirm))
+                }
+            }
+        )
+    }
+}
 @Composable
 fun FeedDialog(onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
     var cantidad by remember { mutableStateOf("1.0") }

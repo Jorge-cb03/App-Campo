@@ -402,4 +402,21 @@
     <string name="dialog_collect_eggs_title">Recoger Producción</string>
     <string name="dialog_collect_eggs_hint">Cantidad recogida</string>
     <string name="cercado_name_hint">Nombre (ej: Norte)</string>
+    <string name="edit_cercado_title">Editar Cercado</string>
+    <string name="edit_farm_entry_title">Editar Registro de Granja</string>
+
+    <string name="conflict_warning_title">⚠️ Conflicto de Compatibilidad</string>
+    <string name="conflict_dog_to_birds">¡Cuidado! Vas a añadir un Perro Pastor a un cercado con aves. Los perros pueden asustar, perseguir o atacar a las gallinas, ocas, patos o perdices. ¿Estás seguro?</string>
+    <string name="conflict_birds_to_dog">¡Cuidado! Vas a meter aves en un cercado donde vive un Perro Pastor. Existe riesgo de conflicto o ataques entre ellos. ¿Deseas continuar?</string>
+
+    <string name="confirm_delete_animal_title">¿Eliminar Animal?</string>
+    <string name="confirm_delete_animal_msg">¿Estás seguro de que quieres eliminar a este animal? Esta acción registrará una baja definitiva en el diario de la granja.</string>
+
+    <string name="success_title">¡Operación Exitosa!</string>
+    <string name="success_animal_added">El animal ha sido registrado y asignado al cercado correctamente.</string>
+    <string name="success_cercado_created">El nuevo cercado se ha creado de forma correcta en la base de datos.</string>
+    <string name="success_animal_deleted">El animal se ha eliminado y se ha anotado la baja en el diario.</string>
+    <string name="success_animal_edited">Los datos del animal han sido modificados con éxito.</string>
+    <string name="success_eggs_collected">¡Producción registrada! Se han sumado los huevos al inventario de productos.</string>
+    <string name="success_feed_given">¡Alimentación registrada! Se ha descontado el pienso del inventario.</string>
 </resources>

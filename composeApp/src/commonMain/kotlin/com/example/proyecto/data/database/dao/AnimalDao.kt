@@ -10,18 +10,31 @@ interface AnimalDao {
     @Query("SELECT * FROM cercados ORDER BY numero ASC")
     fun getAllCercados(): Flow<List<CercadoEntity>>
 
-    @Insert
-    suspend fun insertCercado(cercado: CercadoEntity)
-
     @Query("SELECT * FROM animales")
     fun getAllAnimales(): Flow<List<AnimalEntity>>
-
-    @Insert
-    suspend fun insertAnimal(animal: AnimalEntity)
 
     @Update
     suspend fun updateAnimal(animal: AnimalEntity)
 
     @Delete
     suspend fun deleteAnimal(animal: AnimalEntity)
+
+    @Update
+    suspend fun updateCercado(cercado: CercadoEntity)
+    @Query("SELECT * FROM cercados WHERE sincronizado = 0")
+    suspend fun getCercadosNoSincronizados(): List<CercadoEntity>
+
+    @Query("SELECT * FROM animales WHERE sincronizado = 0")
+    suspend fun getAnimalesNoSincronizados(): List<AnimalEntity>
+
+    @Query("UPDATE cercados SET remoteId = :remoteId WHERE id = :id")
+    suspend fun updateCercadoRemoteId(id: Long, remoteId: String)
+
+    @Query("UPDATE animales SET remoteId = :remoteId WHERE id = :id")
+    suspend fun updateAnimalRemoteId(id: Long, remoteId: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCercado(cercado: CercadoEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAnimal(animal: AnimalEntity): Long
 }

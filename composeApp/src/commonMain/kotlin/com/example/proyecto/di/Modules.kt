@@ -39,7 +39,7 @@ val appModule = module {
         )
     }
 
-    single { AnimalRepository(get()) }
+    single { AnimalRepository(get(), get(), get()) }
 
     single { AuthRepository() }
 

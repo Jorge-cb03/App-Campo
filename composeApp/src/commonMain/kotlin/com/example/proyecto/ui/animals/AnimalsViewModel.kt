@@ -128,4 +128,20 @@ class AnimalsViewModel(
     fun editarAnimal(animal: AnimalEntity, nuevoNombre: String) = viewModelScope.launch {
         animalRepository.updateAnimal(animal.copy(nombre = nuevoNombre))
     }
+    fun editarEntradaDiarioAnimal(id: Long, nuevaDescripcion: String, nuevaCantidad: Double) {
+        viewModelScope.launch {
+            val entrada = animalRepository.getDiarioAnimalPorId(id)
+            if (entrada != null) {
+                animalRepository.actualizarDiarioAnimal(
+                    entrada.copy(descripcion = nuevaDescripcion, cantidad = nuevaCantidad)
+                )
+            }
+        }
+    }
+
+    fun editarCercado(cercado: CercadoEntity, nuevoNumero: Int, nuevoNombre: String) {
+        viewModelScope.launch {
+            animalRepository.updateCercado(cercado.copy(numero = nuevoNumero, nombre = nuevoNombre))
+        }
+    }
 }

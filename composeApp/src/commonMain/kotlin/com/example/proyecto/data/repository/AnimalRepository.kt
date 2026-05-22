@@ -4,6 +4,8 @@ import com.example.proyecto.data.database.AppDatabase
 import com.example.proyecto.data.database.entity.AnimalEntity
 import com.example.proyecto.data.database.entity.CercadoEntity
 import com.example.proyecto.data.database.entity.EntradaDiarioAnimalEntity
+import dev.gitlive.firebase.auth.FirebaseAuth
+import dev.gitlive.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
 
 data class FichaAnimal(
@@ -12,7 +14,11 @@ data class FichaAnimal(
     val alimentacion: String, val compatibilidad: String, val consejo: String
 )
 
-class AnimalRepository(private val db: AppDatabase) {
+class AnimalRepository(
+    private val db: AppDatabase,
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
+) {
     private val animalDao = db.animalDao()
     private val diarioAnimalDao = db.diarioAnimalDao()
 
@@ -27,17 +33,87 @@ class AnimalRepository(private val db: AppDatabase) {
     fun getCatalogo() = catalogoAnimales
     fun getFichaPorNombre(nombre: String) = catalogoAnimales.find { it.nombre.equals(nombre, ignoreCase = true) }
 
+    // --- HELPER MULTI-TENANT (Misma lógica que la Huerta) ---
+    private fun getUserCollection(collectionName: String): dev.gitlive.firebase.firestore.CollectionReference? {
+        val currentUser = auth.currentUser
+        return if (currentUser != null) {
+            firestore.collection("usuarios").document(currentUser.uid).collection(collectionName)
+        } else null
+    }
+
+    // ================= LECTURAS LOCALES (Rápidas) =================
     fun getAllAnimales() = animalDao.getAllAnimales()
     fun getAllCercados() = animalDao.getAllCercados()
-
-    suspend fun insertAnimal(animal: AnimalEntity) = animalDao.insertAnimal(animal)
-    suspend fun updateAnimal(animal: AnimalEntity) = animalDao.updateAnimal(animal)
-    suspend fun deleteAnimal(animal: AnimalEntity) = animalDao.deleteAnimal(animal)
-
-    suspend fun insertCercado(cercado: CercadoEntity) = animalDao.insertCercado(cercado)
-
-    // --- NUEVAS FUNCIONES DEL DIARIO (ESTO FALTABA) ---
-    suspend fun insertarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) = diarioAnimalDao.insert(entrada)
     fun getDiarioAnimales(): Flow<List<EntradaDiarioAnimalEntity>> = diarioAnimalDao.getAllLogs()
-    suspend fun eliminarDiarioAnimal(id: Long) = diarioAnimalDao.deleteById(id)
+
+    // ================= GESTIÓN DE CERCADOS =================
+    suspend fun insertCercado(cercado: CercadoEntity) {
+        val localId = animalDao.insertCercado(cercado)
+        try {
+            getUserCollection("cercados")?.let { col ->
+                val docRef = col.add(cercado.copy(id = localId))
+                animalDao.updateCercadoRemoteId(localId, docRef.id)
+            }
+        } catch (e: Exception) { println("Error Firebase Cercado: ${e.message}") }
+    }
+
+    suspend fun updateCercado(cercado: CercadoEntity) {
+        animalDao.updateCercado(cercado)
+        try {
+            cercado.remoteId?.let { rId -> getUserCollection("cercados")?.document(rId)?.set(cercado) }
+        } catch (e: Exception) { println("Error Firebase Cercado Update: ${e.message}") }
+    }
+
+    // ================= GESTIÓN DE ANIMALES =================
+    suspend fun insertAnimal(animal: AnimalEntity) {
+        val localId = animalDao.insertAnimal(animal)
+        try {
+            getUserCollection("animales")?.let { col ->
+                val docRef = col.add(animal.copy(id = localId))
+                animalDao.updateAnimalRemoteId(localId, docRef.id)
+            }
+        } catch (e: Exception) { println("Error Firebase Animal: ${e.message}") }
+    }
+
+    suspend fun updateAnimal(animal: AnimalEntity) {
+        animalDao.updateAnimal(animal)
+        try {
+            animal.remoteId?.let { rId -> getUserCollection("animales")?.document(rId)?.set(animal) }
+        } catch (e: Exception) { println("Error Firebase Animal Update: ${e.message}") }
+    }
+
+    suspend fun deleteAnimal(animal: AnimalEntity) {
+        animalDao.deleteAnimal(animal)
+        try {
+            animal.remoteId?.let { rId -> getUserCollection("animales")?.document(rId)?.delete() }
+        } catch (e: Exception) { println("Error Firebase Animal Delete: ${e.message}") }
+    }
+
+    // ================= GESTIÓN DEL DIARIO (GRANJA) =================
+    suspend fun insertarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) {
+        val localId = diarioAnimalDao.insert(entrada)
+        try {
+            getUserCollection("diario_granja")?.let { col ->
+                val docRef = col.add(entrada.copy(id = localId))
+                diarioAnimalDao.updateRemoteId(localId, docRef.id)
+            }
+        } catch (e: Exception) { println("Error Firebase Diario Granja: ${e.message}") }
+    }
+
+    suspend fun getDiarioAnimalPorId(id: Long): EntradaDiarioAnimalEntity? = diarioAnimalDao.getById(id)
+
+    suspend fun actualizarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) {
+        diarioAnimalDao.update(entrada)
+        try {
+            entrada.remoteId?.let { rId -> getUserCollection("diario_granja")?.document(rId)?.set(entrada) }
+        } catch (e: Exception) { println("Error Firebase Diario Granja Update: ${e.message}") }
+    }
+
+    suspend fun eliminarDiarioAnimal(id: Long) {
+        val entrada = diarioAnimalDao.getById(id)
+        diarioAnimalDao.deleteById(id)
+        try {
+            entrada?.remoteId?.let { rId -> getUserCollection("diario_granja")?.document(rId)?.delete() }
+        } catch (e: Exception) { println("Error Firebase Diario Granja Delete: ${e.message}") }
+    }
 }

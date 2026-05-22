@@ -28,48 +28,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ChatMessage(val text: String, val isUser: Boolean)
 
-data class WeatherState(
-    val temperature: Double = 0.0,
-    val weatherCode: Int = 0,
-    val isDay: Int = 1,
-    val isLoading: Boolean = true
-)
+@Serializable
+data class GeminiRequest(val contents: List<GeminiContent>)
 
 @Serializable
-data class Candidate(
-    val content: GeminiContent
-)
+data class GeminiContent(val parts: List<Part>, val role: String = "user")
 
 @Serializable
-data class Content(
-    val parts: List<Part>,
-    val role: String = "user"
-)
-
-@Serializable
-data class GeminiRequest(
-    val contents: List<GeminiContent> // <--- Espera una lista de GeminiContent
-)
-
-@Serializable
-data class GeminiContent( // <--- RENOMBRADO de 'Content' a 'GeminiContent'
-    val parts: List<Part>,
-    val role: String = "user"
-)
-
-@Serializable
-data class Part(
-    val text: String
-)
-
-@Serializable
-data class WeatherResponse(val current: CurrentWeather)
-
-@Serializable
-data class CurrentWeather(val temperature_2m: Double, val weather_code: Int, val is_day: Int)
-
-@Serializable
-data class GeminiPart(val text: String)
+data class Part(val text: String? = null)
 
 @Serializable
 data class GeminiResponse(
@@ -78,14 +44,34 @@ data class GeminiResponse(
 )
 
 @Serializable
-data class ApiError(
-    val code: Int,
-    val message: String,
-    val status: String
+data class Candidate(
+    val content: GeminiContent? = null,
+    val finishReason: String? = null
 )
 
 @Serializable
-data class GeminiCandidate(val content: GeminiContent?)
+data class ApiError(val code: Int, val message: String, val status: String)
+
+data class WeatherState(
+    val temperature: Double = 0.0,
+    val weatherCode: Int = 0,
+    val isDay: Int = 1,
+    val isLoading: Boolean = true
+)
+
+@Serializable
+data class Content(
+    val parts: List<Part>,
+    val role: String = "user"
+)
+@Serializable
+data class WeatherResponse(val current: CurrentWeather)
+
+@Serializable
+data class CurrentWeather(val temperature_2m: Double, val weather_code: Int, val is_day: Int)
+
+@Serializable
+data class GeminiPart(val text: String)
 
 class GardenViewModel(
     private val repository: JardineraRepository,
@@ -207,6 +193,7 @@ class GardenViewModel(
 
     // CLIENTE HTTP
     private val client = HttpClient {
+        expectSuccess = false
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -250,8 +237,7 @@ class GardenViewModel(
         }
     }
 
-    // ¡¡PON TU API KEY AQUÍ!!
-    private val GEMINI_API_KEY = "AIzaSyBVSKjJDakhJTb-sBJHJI-6JlwYHp4cw38"
+    private val GEMINI_API_KEY = "AIzaSyAU8lChfk_CComnbp5TLM3FXEzjMonC5O8"
 
     fun sendMessageToGemini(prompt: String) {
         _isGeminiLoading.value = true
@@ -259,36 +245,49 @@ class GardenViewModel(
 
         viewModelScope.launch {
             try {
-                val apiKey = GEMINI_API_KEY // <-- Utilizando la variable de arriba
+                val apiKey = GEMINI_API_KEY // Tu clave API aquí
 
-                // CORRECCIÓN: Usamos GeminiContent en lugar de Content
-                val requestBody = GeminiRequest(
-                    contents = listOf(
-                        GeminiContent(parts = listOf(Part(text = prompt)))
-                    )
-                )
+                // 1. Limpiamos el texto por si tu padre pone comillas o saltos de línea
+                val promptSeguro = prompt.replace("\"", "\\\"").replace("\n", " ")
 
-                val response = client.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey") {
-                    contentType(ContentType.Application.Json)
-                    setBody(requestBody)
+                // 2. CONSTRUIMOS EL JSON A MANO (A prueba de fallos de Ktor)
+                val jsonBodyString = """
+                    {
+                      "contents": [
+                        {
+                          "parts": [
+                            {"text": "$promptSeguro"}
+                          ]
+                        }
+                      ]
+                    }
+                """.trimIndent()
+
+                // 3. Usamos el modelo 1.5-flash-latest que es el estable y gratuito
+                // 3. Usamos el modelo 1.5-flash-latest que es el estable y gratuito
+                val response = client.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$apiKey") {
+                    // Usamos exactamente las funciones que ya te compilaban antes
+                    contentType(io.ktor.http.ContentType.Application.Json)
+                    setBody(jsonBodyString)
                 }
 
                 val responseBodyString = response.bodyAsText()
-                println("RESPUESTA RAW: $responseBodyString")
 
-                val geminiResponse = Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(responseBodyString)
+                val geminiResponse = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; isLenient = true }.decodeFromString<GeminiResponse>(responseBodyString)
 
-                if (geminiResponse.candidates != null && geminiResponse.candidates.isNotEmpty()) {
-                    val responseText = geminiResponse.candidates[0].content.parts[0].text
+                if (geminiResponse.error != null) {
+                    _geminiChatHistory.value += ChatMessage("⚠️ Google dice: ${geminiResponse.error.message}", false)
+                } else if (geminiResponse.candidates != null && geminiResponse.candidates.isNotEmpty()) {
+                    val candidate = geminiResponse.candidates[0]
+                    val responseText = candidate.content?.parts?.get(0)?.text ?: "Respuesta en blanco."
                     _geminiChatHistory.value += ChatMessage(responseText, false)
                 } else {
-                    val errorMsg = geminiResponse.error?.message ?: "Respuesta vacía o error desconocido"
-                    _geminiChatHistory.value += ChatMessage("Error: $errorMsg", false)
+                    _geminiChatHistory.value += ChatMessage("⚠️ La IA no devolvió nada.", false)
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                _geminiChatHistory.value += ChatMessage("Error: ${e.message}", false)
+                _geminiChatHistory.value += ChatMessage("📡 Fallo local: ${e.message}", false)
             } finally {
                 _isGeminiLoading.value = false
             }

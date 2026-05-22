@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -37,25 +39,22 @@ import huertomanager.composeapp.generated.resources.*
 fun DiaryScreen(
     navController: NavController,
     viewModel: GardenViewModel = koinViewModel(),
-    animalsViewModel: AnimalsViewModel = koinViewModel() // <-- AÑADIDO: Inyectamos los datos de la granja
+    animalsViewModel: AnimalsViewModel = koinViewModel()
 ) {
-    // 1. Recolectamos AMBOS historiales
     val historialHuerto by viewModel.historialGeneral.collectAsState()
     val historialGranja by animalsViewModel.diarioAnimales.collectAsState(initial = emptyList())
 
-    // 2. MEZCLAMOS LOS HISTORIALES VISUALMENTE
     val historialCombinado = remember(historialHuerto, historialGranja) {
         val granjaMapeada = historialGranja.map {
             EntradaDiarioEntity(
                 id = it.id,
-                bancalId = -1L, // USAMOS -1 COMO MARCADOR PARA SABER QUE ES DE LA GRANJA
+                bancalId = -1L,
                 tipoAccion = it.tipoAccion,
                 descripcion = it.descripcion,
                 fecha = it.fecha,
                 foto = null
             )
         }
-        // Unimos y ordenamos por fecha (el más reciente arriba)
         (historialHuerto + granjaMapeada).sortedByDescending { it.fecha }
     }
 
@@ -64,10 +63,10 @@ fun DiaryScreen(
     var currentMonth by remember { mutableStateOf(today.monthNumber) }
     var currentYear by remember { mutableStateOf(today.year) }
 
-    // Cambiado: Ahora guardamos la entidad completa para saber si borrar del huerto o de la granja
     var showDeleteConfirm by remember { mutableStateOf<EntradaDiarioEntity?>(null) }
+    // Estado para controlar qué entrada de la granja se va a editar
+    var animalEntryToEdit by remember { mutableStateOf<EntradaDiarioEntity?>(null) }
 
-    // Filtramos la lista combinada por el día seleccionado
     val entriesForSelectedDay = historialCombinado.filter {
         val date = Instant.fromEpochMilliseconds(it.fecha).toLocalDateTime(TimeZone.currentSystemDefault()).date
         date == selectedDate
@@ -91,10 +90,7 @@ fun DiaryScreen(
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)
         ) {
             Spacer(Modifier.height(40.dp))
             Text(text = stringResource(Res.string.diary_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
@@ -161,26 +157,75 @@ fun DiaryScreen(
                             icon = when(entrada.tipoAccion) {
                                 "RIEGO" -> Icons.Default.WaterDrop
                                 "PODA" -> Icons.Default.ContentCut
-                                "PRODUCCIÓN" -> Icons.Default.Egg // Icono de huevo
-                                "ALIMENTACIÓN" -> Icons.Default.Restaurant // Icono de pienso
-                                "ALTA ANIMAL" -> Icons.Default.Pets // Icono de mascota
-                                "BAJA ANIMAL" -> Icons.Default.RemoveCircle // Icono de baja
+                                "PRODUCCIÓN" -> Icons.Default.Egg
+                                "ALIMENTACIÓN" -> Icons.Default.Restaurant
+                                "ALTA ANIMAL" -> Icons.Default.Pets
+                                "BAJA ANIMAL" -> Icons.Default.RemoveCircle
                                 else -> Icons.Default.Agriculture
                             },
                             showLine = true,
-                            canEdit = !isGranja, // Solo permitimos editar tareas del huerto de momento
+                            canEdit = true, // <-- CAMBIADO A TRUE: Ahora todo se puede editar
                             onClick = {
                                 if (!isGranja) navController.navigate(AppScreens.createDiaryDetailRoute(entrada.id))
                             },
                             onEdit = {
-                                if (!isGranja) navController.navigate("add_diary_entry/${entrada.fecha}?taskId=${entrada.id}")
+                                if (!isGranja) {
+                                    navController.navigate("add_diary_entry/${entrada.fecha}?taskId=${entrada.id}")
+                                } else {
+                                    // Capturamos el elemento para editarlo inline mediante Dialogo
+                                    animalEntryToEdit = entrada
+                                }
                             },
-                            onDelete = { showDeleteConfirm = entrada } // Pasamos el objeto entero
+                            onDelete = { showDeleteConfirm = entrada }
                         )
                     }
                 }
             }
         }
+    }
+
+    // --- DIÁLOGO EMERGENTE PARA EDITAR REGISTROS DE ANIMALES ---
+    if (animalEntryToEdit != null) {
+        val registroOriginal = historialGranja.find { it.id == animalEntryToEdit!!.id }
+
+        var desc by remember(animalEntryToEdit) { mutableStateOf(animalEntryToEdit!!.descripcion) }
+        var cantidad by remember(registroOriginal) { mutableStateOf(registroOriginal?.cantidad?.toString()?.removeSuffix(".0") ?: "") }
+
+        AlertDialog(
+            onDismissRequest = { animalEntryToEdit = null },
+            title = { Text(stringResource(Res.string.edit_farm_entry_title)) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = desc,
+                        onValueChange = { desc = it },
+                        label = { Text(stringResource(Res.string.animal_name_label)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = cantidad,
+                        onValueChange = { cantidad = it },
+                        label = { Text(stringResource(Res.string.dialog_collect_eggs_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    animalsViewModel.editarEntradaDiarioAnimal(
+                        id = animalEntryToEdit!!.id,
+                        nuevaDescripcion = desc,
+                        nuevaCantidad = cantidad.toDoubleOrNull() ?: 0.0
+                    )
+                    animalEntryToEdit = null
+                }) { Text(stringResource(Res.string.btn_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { animalEntryToEdit = null }) { Text(stringResource(Res.string.btn_cancel)) }
+            }
+        )
     }
 
     if (showDeleteConfirm != null) {
@@ -192,8 +237,6 @@ fun DiaryScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // LA MAGIA DE LA SEPARACIÓN:
-                        // Verificamos de qué base de datos hay que borrarlo
                         if (showDeleteConfirm!!.bancalId == -1L) {
                             animalsViewModel.eliminarEntradaDiarioAnimal(showDeleteConfirm!!.id)
                         } else {
@@ -210,7 +253,6 @@ fun DiaryScreen(
         )
     }
 }
-
 @Composable
 fun TimelineItem(
     title: String,
@@ -253,7 +295,6 @@ fun TimelineItem(
                     Box(modifier = Modifier.padding(start = 8.dp)) {
                         IconButton(onClick = { showMenu = true }, modifier = Modifier.size(24.dp)) { Icon(Icons.Default.MoreVert, null) }
                         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                            // Solo mostramos editar si es del huerto
                             if (canEdit) {
                                 DropdownMenuItem(text = { Text(stringResource(Res.string.menu_edit)) }, onClick = { showMenu = false; onEdit() }, leadingIcon = { Icon(Icons.Default.Edit, null) })
                             }
@@ -271,7 +312,11 @@ fun getDaysInMonth(month: Int, year: Int): Int {
     val nextMonth = if (month == 12) LocalDate(year + 1, 1, 1) else LocalDate(year, month + 1, 1)
     return start.daysUntil(nextMonth)
 }
-fun getFirstDayOfWeek(month: Int, year: Int): Int { return LocalDate(year, month, 1).dayOfWeek.ordinal }
+
+fun getFirstDayOfWeek(month: Int, year: Int): Int {
+    return LocalDate(year, month, 1).dayOfWeek.ordinal
+}
+
 @Composable
 fun getMonthName(monthNumber: Int): String {
     val res = when(monthNumber) {

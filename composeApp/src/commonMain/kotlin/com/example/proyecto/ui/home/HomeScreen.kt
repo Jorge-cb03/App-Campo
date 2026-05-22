@@ -38,61 +38,83 @@ fun HomeScreen(navController: NavController, viewModel: GardenViewModel = koinVi
     val favoritedGardens = jardineras.filter { it.esFavorita }
     val weatherState by viewModel.weatherState.collectAsState()
 
-    // LA MAGIA ESTÁ AQUÍ: Comprobamos el color real de la app, no el del móvil.
+    // Comprobamos el color real de la app
     val isDark = MaterialTheme.colorScheme.background == Color(0xFF0F172A) ||
             MaterialTheme.colorScheme.background == Color(0xFF121212)
 
-    // Un marrón oscuro que destaca perfecto sobre el fondo negro/azulado
     val favoriteColor = if (isDark) Color(0xFF4E342E) else Color(0xFFEFEBE9)
     val favoriteBorder = if (isDark) Color(0xFF6D4C41) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
 
-    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 20.dp).verticalScroll(rememberScrollState())) {
-
-        Row(Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 20.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Column {
-                Text("${today.dayOfMonth}/${today.monthNumber}", color = MaterialTheme.colorScheme.secondary)
-                Text(stringResource(Res.string.home_greeting), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+    // --- AQUÍ EMPIEZA LA MAGIA DEL BOTÓN FLOTANTE ---
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(AppScreens.Chat) }, // Navega a la IA
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.Chat, contentDescription = "Asistente IA")
             }
-            IconButton(onClick = { navController.navigate(AppScreens.Alerts) }) { Icon(Icons.Filled.Notifications, null, tint = MaterialTheme.colorScheme.primary) }
         }
-
-        WeatherCard(weatherState)
-
-        Spacer(Modifier.height(30.dp))
-        Text(stringResource(Res.string.quick_access_title), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) { paddingValues ->
+        // Tu Column original, ahora respetando el espacio del Scaffold
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues) // MUY IMPORTANTE: Respeta el menú y el botón
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 20.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            if (favoritedGardens.isEmpty()) {
-                Text(stringResource(Res.string.garden_no_history), color = Color.Gray, modifier = Modifier.padding(16.dp))
-            } else {
-                favoritedGardens.forEach { garden ->
-                    Card(
-                        modifier = Modifier.width(150.dp).height(110.dp).clickable {
-                            navController.navigate("garden/${garden.id}") { launchSingleTop = true }
-                        },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = favoriteColor),
-                        border = BorderStroke(1.dp, favoriteBorder)
-                    ) {
-                        Column(Modifier.fillMaxSize().padding(12.dp), Arrangement.Center, Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.PushPin, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = garden.nombre,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                color = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface
-                            )
+
+            Row(Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 20.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("${today.dayOfMonth}/${today.monthNumber}", color = MaterialTheme.colorScheme.secondary)
+                    Text(stringResource(Res.string.home_greeting), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                }
+                IconButton(onClick = { navController.navigate(AppScreens.Alerts) }) { Icon(Icons.Filled.Notifications, null, tint = MaterialTheme.colorScheme.primary) }
+            }
+
+            WeatherCard(weatherState)
+
+            Spacer(Modifier.height(30.dp))
+            Text(stringResource(Res.string.quick_access_title), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (favoritedGardens.isEmpty()) {
+                    Text(stringResource(Res.string.garden_no_history), color = Color.Gray, modifier = Modifier.padding(16.dp))
+                } else {
+                    favoritedGardens.forEach { garden ->
+                        Card(
+                            modifier = Modifier.width(150.dp).height(110.dp).clickable {
+                                navController.navigate("garden/${garden.id}") { launchSingleTop = true }
+                            },
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = favoriteColor),
+                            border = BorderStroke(1.dp, favoriteBorder)
+                        ) {
+                            Column(Modifier.fillMaxSize().padding(12.dp), Arrangement.Center, Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.PushPin, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    text = garden.nombre,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    color = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
             }
+            Spacer(Modifier.height(24.dp))
         }
-        Spacer(Modifier.height(24.dp))
     }
 }
 

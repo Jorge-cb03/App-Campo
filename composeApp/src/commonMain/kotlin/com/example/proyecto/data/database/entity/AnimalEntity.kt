@@ -14,5 +14,8 @@ data class AnimalEntity(
     val fotoPerfil: ByteArray?,
     val esPonedora: Boolean = false,
     val notas: String? = null,
-    val compatibilidad: String? = null
+    val compatibilidad: String? = null,
+    val remoteId: String? = null,
+    val usuarioId: String = "",
+    val sincronizado: Boolean = false
 )

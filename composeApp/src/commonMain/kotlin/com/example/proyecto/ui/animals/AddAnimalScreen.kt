@@ -48,8 +48,14 @@ fun AddAnimalScreen(
     var isLayer by remember { mutableStateOf(selectedFicha.esPonedora) }
 
     val cercadosList by viewModel.cercados.collectAsState(initial = emptyList())
+    val todosLosAnimales by viewModel.animales.collectAsState(initial = emptyList()) // Cargamos animales para chequear conflictos
+
     var expandedCercado by remember { mutableStateOf(false) }
     var cercadoSeleccionado by remember { mutableStateOf<CercadoEntity?>(null) }
+
+    // --- ESTADOS PARA LOS DIÁLOGOS DE CONTROL ---
+    var conflictType by remember { mutableStateOf<String?>(null) } // "dog_to_birds" o "birds_to_dog"
+    var successType by remember { mutableStateOf<String?>(null) }  // "animal_added" o "cercado_created"
     var showNewCercadoDialog by remember { mutableStateOf(false) }
 
     val launcher = MediaManager.rememberLauncher { bytes -> photoBytes = bytes }
@@ -68,6 +74,7 @@ fun AddAnimalScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // FOTO
             Box(
                 modifier = Modifier.size(120.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant).clickable { launcher.launchGallery() },
                 contentAlignment = Alignment.Center
@@ -83,6 +90,7 @@ fun AddAnimalScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // SELECTOR TIPO
             ExposedDropdownMenuBox(
                 expanded = expandedTipo, onExpandedChange = { expandedTipo = !expandedTipo }, modifier = Modifier.fillMaxWidth()
             ) {
@@ -104,6 +112,7 @@ fun AddAnimalScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // SELECTOR CERCADO
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ExposedDropdownMenuBox(
                     expanded = expandedCercado, onExpandedChange = { expandedCercado = !expandedCercado }, modifier = Modifier.weight(1f)
@@ -131,6 +140,7 @@ fun AddAnimalScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // NOMBRE
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
                 label = { Text(stringResource(Res.string.add_animal_name_hint)) },
@@ -139,6 +149,7 @@ fun AddAnimalScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // SWITCH PONEDORA
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(Res.string.add_animal_is_layer), modifier = Modifier.weight(1f))
                 Switch(checked = isLayer, onCheckedChange = { isLayer = it })
@@ -146,11 +157,27 @@ fun AddAnimalScreen(
 
             Spacer(Modifier.height(32.dp))
 
+            // BOTÓN GUARDAR CON FILTRO DE COMPATIBILIDAD
             Button(
                 onClick = {
                     cercadoSeleccionado?.let { cercado ->
-                        viewModel.addAnimal(name, selectedFicha.nombre, cercado.id, isLayer, photoBytes)
-                        navController.popBackStack()
+                        // 1. Buscamos qué animales ya viven en este bloque
+                        val animalesEnCercado = todosLosAnimales.filter { it.cercadoId == cercado.id }
+                        val tiposExistentes = animalesEnCercado.map { it.tipo.lowercase().trim() }
+
+                        val nuevoTipo = selectedFicha.nombre.lowercase().trim()
+                        val aves = listOf("gallina", "oca", "perdiz", "pato")
+
+                        // 2. Evaluamos conflictos biológicos
+                        if (nuevoTipo == "perro pastor" && tiposExistentes.any { it in aves }) {
+                            conflictType = "dog_to_birds"
+                        } else if (nuevoTipo in aves && tiposExistentes.contains("perro pastor")) {
+                            conflictType = "birds_to_dog"
+                        } else {
+                            // Sin conflictos: guardamos directamente
+                            viewModel.addAnimal(name, selectedFicha.nombre, cercado.id, isLayer, photoBytes)
+                            successType = "animal_added"
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -159,14 +186,71 @@ fun AddAnimalScreen(
         }
     }
 
+    // --- 1. DIÁLOGO DE ADVERTENCIA DE COMPATIBILIDAD ---
+    if (conflictType != null) {
+        AlertDialog(
+            onDismissRequest = { conflictType = null },
+            title = { Text(stringResource(Res.string.conflict_warning_title)) },
+            text = {
+                Text(
+                    if (conflictType == "dog_to_birds") stringResource(Res.string.conflict_dog_to_birds)
+                    else stringResource(Res.string.conflict_birds_to_dog)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // El usuario confirma voluntariamente, forzamos el guardado
+                        cercadoSeleccionado?.let { viewModel.addAnimal(name, selectedFicha.nombre, it.id, isLayer, photoBytes) }
+                        conflictType = null
+                        successType = "animal_added"
+                    }
+                ) { Text(stringResource(Res.string.btn_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { conflictType = null }) { Text(stringResource(Res.string.btn_cancel)) }
+            }
+        )
+    }
+
+    // --- 2. DIÁLOGO GENERAL DE OPERACIÓN EXITOSA ---
+    if (successType != null) {
+        AlertDialog(
+            onDismissRequest = { /* No cerramos al pinchar fuera para forzar botón */ },
+            title = { Text(stringResource(Res.string.success_title)) },
+            text = {
+                Text(
+                    if (successType == "animal_added") stringResource(Res.string.success_animal_added)
+                    else stringResource(Res.string.success_cercado_created)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val currentType = successType
+                        successType = null
+                        // Si añadimos un animal, volvemos atrás. Si creamos un cercado, nos quedamos.
+                        if (currentType == "animal_added") {
+                            navController.popBackStack()
+                        }
+                    }
+                ) { Text(stringResource(Res.string.btn_confirm)) }
+            }
+        )
+    }
+
+    // Creación de nuevo cercado
     if (showNewCercadoDialog) {
         NewCercadoDialog(
-            onConfirm = { num, nom -> viewModel.addCercado(num, nom); showNewCercadoDialog = false },
+            onConfirm = { num, nom ->
+                viewModel.addCercado(num, nom)
+                showNewCercadoDialog = false
+                successType = "cercado_created" // Disparamos cartel de éxito
+            },
             onDismiss = { showNewCercadoDialog = false }
         )
     }
 }
-
 @Composable
 fun NewCercadoDialog(onConfirm: (Int, String) -> Unit, onDismiss: () -> Unit) {
     var num by remember { mutableStateOf("") }

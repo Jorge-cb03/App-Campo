@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,10 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -35,7 +35,6 @@ import org.jetbrains.compose.resources.stringResource
 import huertomanager.composeapp.generated.resources.*
 import org.koin.compose.viewmodel.koinViewModel
 
-// ESTA FUNCIÓN SOLO DEBE ESTAR AQUÍ
 fun getLocalizedTypeName(type: ProductType): StringResource {
     return when (type) {
         ProductType.SEED -> Res.string.type_seed
@@ -53,8 +52,11 @@ fun getLocalizedTypeName(type: ProductType): StringResource {
 fun ProductsScreen(navController: NavController, viewModel: GardenViewModel = koinViewModel()) {
     val productos by viewModel.getProductos().collectAsState(initial = emptyList())
     var searchQuery by remember { mutableStateOf("") }
+
+    // Estados para los diálogos
     var productOptions by remember { mutableStateOf<ProductoEntity?>(null) }
     var showDeleteConfirm by remember { mutableStateOf<Long?>(null) }
+    var stockToAddProduct by remember { mutableStateOf<ProductoEntity?>(null) } // <-- NUEVO ESTADO
 
     val filteredProducts = productos.filter { it.nombre.contains(searchQuery, ignoreCase = true) && it.stock > 0 }
 
@@ -105,16 +107,81 @@ fun ProductsScreen(navController: NavController, viewModel: GardenViewModel = ko
         }
     }
 
+    // --- MENÚ DE OPCIONES DEL PRODUCTO (Al mantener pulsado) ---
     if (productOptions != null) {
         AlertDialog(
             onDismissRequest = { productOptions = null },
             title = { Text(productOptions?.nombre ?: "") },
-            text = { Text("¿Qué deseas hacer?") },
-            confirmButton = { Button(onClick = { val id = productOptions?.id; productOptions = null; if (id != null) navController.navigate(AppScreens.createEditProductRoute(id)) }) { Text("Editar") } },
-            dismissButton = { TextButton(onClick = { val id = productOptions?.id; productOptions = null; if (id != null) showDeleteConfirm = id }, colors = ButtonDefaults.textButtonColors(contentColor = RedDanger)) { Text("Eliminar") } }
+            text = { Text("¿Qué deseas hacer con este producto?") },
+            confirmButton = {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                    // Botón para Sumar Stock Rápido
+                    Button(
+                        onClick = {
+                            stockToAddProduct = productOptions
+                            productOptions = null
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    ) { Text("Añadir Stock (Compra)") }
+
+                    // Botón Editar
+                    Button(
+                        onClick = {
+                            val id = productOptions?.id; productOptions = null
+                            if (id != null) navController.navigate(AppScreens.createEditProductRoute(id))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Editar Producto") }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        val id = productOptions?.id; productOptions = null
+                        if (id != null) showDeleteConfirm = id
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = RedDanger)
+                ) { Text("Eliminar") }
+            }
         )
     }
 
+    // --- NUEVO DIÁLOGO: AÑADIR STOCK RÁPIDO ---
+    if (stockToAddProduct != null) {
+        var amountString by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { stockToAddProduct = null },
+            title = { Text("Añadir Stock: ${stockToAddProduct!!.nombre}") },
+            text = {
+                OutlinedTextField(
+                    value = amountString,
+                    onValueChange = { amountString = it },
+                    label = { Text("Cantidad comprada (ej: 5)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val amountToAdd = amountString.toDoubleOrNull() ?: 0.0
+                        viewModel.updateStock(
+                            stockToAddProduct!!.id,
+                            stockToAddProduct!!.stock + amountToAdd
+                        )
+                        stockToAddProduct = null
+                    },
+                    enabled = amountString.isNotBlank()
+                ) { Text("Sumar al inventario") }
+            },
+            dismissButton = {
+                TextButton(onClick = { stockToAddProduct = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // --- DIÁLOGO DE ELIMINAR ---
     if (showDeleteConfirm != null) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = null },

@@ -11,5 +11,8 @@ data class EntradaDiarioAnimalEntity(
     val tipoAccion: String,
     val descripcion: String,
     val cantidad: Double,
-    val fecha: Long = System.currentTimeMillis()
+    val fecha: Long = System.currentTimeMillis(),
+    val usuarioId: String = "",
+    val remoteId: String? = null,
+    val sincronizado: Boolean = false
 )

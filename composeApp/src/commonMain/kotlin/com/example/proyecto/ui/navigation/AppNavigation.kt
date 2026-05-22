@@ -31,10 +31,14 @@ import com.example.proyecto.ui.alerts.AlertsScreen
 import com.example.proyecto.ui.animals.AddAnimalScreen
 import com.example.proyecto.ui.animals.AnimalGroupDetailScreen
 
+// ---> IMPORTACIÓN VITAL PARA QUE ENCUENTRE LA IA <---
+import com.example.proyecto.ui.chat.ChatScreen
+
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
+
 object AppScreens {
-
     const val Animals = "animals"
-
     const val AddAnimal = "add_animal"
     const val Login = "login"
     const val Register = "register"
@@ -44,8 +48,13 @@ object AppScreens {
     const val Profile = "profile"
     const val Alerts = "alerts"
     const val About = "about"
+
+    // Ruta de la Inteligencia Artificial
+    const val Chat = "chat"
+
     const val AnimalGroupDetail = "animal_group_detail/{type}"
     fun createAnimalGroupDetailRoute(type: String) = "animal_group_detail/$type"
+
     const val AddDiaryEntry = "add_diary_entry/{dateMillis}?taskId={taskId}"
     fun createAddDiaryRoute(dateMillis: Long) = "add_diary_entry/$dateMillis"
 
@@ -70,11 +79,14 @@ fun AppNavigation(isDarkTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
 
     val showBottomBar = currentRoute != AppScreens.Login && currentRoute != AppScreens.Register
 
+    val currentUser = Firebase.auth.currentUser
+    val rutaInicial = if (currentUser != null) AppScreens.Home else AppScreens.Login
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { if (showBottomBar) BottomMenu(navController) }
     ) { innerPadding ->
-        NavHost(navController, startDestination = AppScreens.Login, modifier = Modifier.padding(innerPadding)) {
+        NavHost(navController, startDestination = rutaInicial, modifier = Modifier.padding(innerPadding)) {
             composable(AppScreens.Login) {
                 LoginScreen(
                     onLoginSuccess = { navController.navigate(AppScreens.Home) { popUpTo(AppScreens.Login) { inclusive = true } } },
@@ -125,13 +137,17 @@ fun AppNavigation(isDarkTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
             }
             composable(AppScreens.AddAnimal) { AddAnimalScreen(navController = navController) }
 
-            composable(AppScreens.Profile) { ProfileScreen(navController, isDarkTheme, onToggleTheme) }
             composable(
                 route = AppScreens.AnimalGroupDetail,
                 arguments = listOf(navArgument("type") { type = NavType.StringType })
             ) { backStackEntry ->
                 val type = backStackEntry.arguments?.getString("type") ?: ""
                 AnimalGroupDetailScreen(navController, type)
+            }
+
+            // --- PANTALLA DE CHAT REGISTRADA CON ÉXITO ---
+            composable(AppScreens.Chat) {
+                ChatScreen(navController = navController)
             }
         }
     }
