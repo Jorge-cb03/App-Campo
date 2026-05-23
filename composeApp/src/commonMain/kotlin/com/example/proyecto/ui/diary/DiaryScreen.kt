@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -21,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -64,8 +62,6 @@ fun DiaryScreen(
     var currentYear by remember { mutableStateOf(today.year) }
 
     var showDeleteConfirm by remember { mutableStateOf<EntradaDiarioEntity?>(null) }
-    // Estado para controlar qué entrada de la granja se va a editar
-    var animalEntryToEdit by remember { mutableStateOf<EntradaDiarioEntity?>(null) }
 
     val entriesForSelectedDay = historialCombinado.filter {
         val date = Instant.fromEpochMilliseconds(it.fecha).toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -164,16 +160,19 @@ fun DiaryScreen(
                                 else -> Icons.Default.Agriculture
                             },
                             showLine = true,
-                            canEdit = true, // <-- CAMBIADO A TRUE: Ahora todo se puede editar
+                            canEdit = true,
                             onClick = {
-                                if (!isGranja) navController.navigate(AppScreens.createDiaryDetailRoute(entrada.id))
+                                if (!isGranja) {
+                                    navController.navigate(AppScreens.createDiaryDetailRoute(entrada.id))
+                                } else {
+                                    navController.navigate("animal_diary_detail/${entrada.id}")
+                                }
                             },
                             onEdit = {
                                 if (!isGranja) {
                                     navController.navigate("add_diary_entry/${entrada.fecha}?taskId=${entrada.id}")
                                 } else {
-                                    // Capturamos el elemento para editarlo inline mediante Dialogo
-                                    animalEntryToEdit = entrada
+                                    navController.navigate("diary_fauna_task/${entrada.fecha}?taskId=${entrada.id}")
                                 }
                             },
                             onDelete = { showDeleteConfirm = entrada }
@@ -182,50 +181,6 @@ fun DiaryScreen(
                 }
             }
         }
-    }
-
-    // --- DIÁLOGO EMERGENTE PARA EDITAR REGISTROS DE ANIMALES ---
-    if (animalEntryToEdit != null) {
-        val registroOriginal = historialGranja.find { it.id == animalEntryToEdit!!.id }
-
-        var desc by remember(animalEntryToEdit) { mutableStateOf(animalEntryToEdit!!.descripcion) }
-        var cantidad by remember(registroOriginal) { mutableStateOf(registroOriginal?.cantidad?.toString()?.removeSuffix(".0") ?: "") }
-
-        AlertDialog(
-            onDismissRequest = { animalEntryToEdit = null },
-            title = { Text(stringResource(Res.string.edit_farm_entry_title)) },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = desc,
-                        onValueChange = { desc = it },
-                        label = { Text(stringResource(Res.string.animal_name_label)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = cantidad,
-                        onValueChange = { cantidad = it },
-                        label = { Text(stringResource(Res.string.dialog_collect_eggs_hint)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    animalsViewModel.editarEntradaDiarioAnimal(
-                        id = animalEntryToEdit!!.id,
-                        nuevaDescripcion = desc,
-                        nuevaCantidad = cantidad.toDoubleOrNull() ?: 0.0
-                    )
-                    animalEntryToEdit = null
-                }) { Text(stringResource(Res.string.btn_save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { animalEntryToEdit = null }) { Text(stringResource(Res.string.btn_cancel)) }
-            }
-        )
     }
 
     if (showDeleteConfirm != null) {
@@ -253,6 +208,7 @@ fun DiaryScreen(
         )
     }
 }
+
 @Composable
 fun TimelineItem(
     title: String,

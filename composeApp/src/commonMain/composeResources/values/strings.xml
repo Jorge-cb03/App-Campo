@@ -419,4 +419,25 @@
     <string name="success_animal_edited">Los datos del animal han sido modificados con éxito.</string>
     <string name="success_eggs_collected">¡Producción registrada! Se han sumado los huevos al inventario de productos.</string>
     <string name="success_feed_given">¡Alimentación registrada! Se ha descontado el pienso del inventario.</string>
+
+    <string name="tab_gardening">Jardinería</string>
+    <string name="tab_animals">Animales</string>
+
+    <string name="animal_diary_new_entry_title">Nueva Tarea</string>
+
+    <string name="animal_diary_type_feeding">Alimentación</string>
+    <string name="animal_diary_type_collect">Recoger producción</string>
+    <string name="animal_diary_type_vet">Revisión veterinaria</string>
+    <string name="animal_diary_type_clean">Limpieza</string>
+    <string name="animal_diary_type_vaccine">Vacunación</string>
+    <string name="animal_diary_type_other">Otro</string>
+
+    <string name="animal_diary_feed_sacks">Sacos de pienso</string>
+    <string name="animal_diary_sacks_unit">sacos</string>
+
+    <string name="animal_diary_collect_amount">Cantidad recogida</string>
+    <string name="animal_diary_collect_unit">uds</string>
+
+    <string name="animal_diary_register_btn">Registrar en cercado</string>
+    <string name="animal_diary_success_msg">Tarea de animales registrada correctamente.</string>
 </resources>

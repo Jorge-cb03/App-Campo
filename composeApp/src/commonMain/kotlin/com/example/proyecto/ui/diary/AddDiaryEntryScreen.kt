@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +39,7 @@ import com.example.proyecto.data.database.entity.BancalEntity
 import com.example.proyecto.data.database.entity.JardineraEntity
 import com.example.proyecto.ui.HuertaInput
 import com.example.proyecto.ui.garden.GardenViewModel
+import com.example.proyecto.ui.navigation.AppScreens
 import com.example.proyecto.util.MediaManager
 import kotlinx.datetime.*
 import org.jetbrains.compose.resources.stringResource
@@ -144,11 +147,37 @@ fun AddDiaryEntryScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (isEditMode) Res.string.diary_edit_entry_title else Res.string.diary_new_entry_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Filled.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+            Column {
+                TopAppBar(
+                    title = { Text(stringResource(if (isEditMode) Res.string.diary_edit_entry_title else Res.string.diary_new_entry_title), fontWeight = FontWeight.Bold) },
+                    navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Filled.ArrowBack, null) } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+                if (!isEditMode) {
+                    TabRow(
+                        selectedTabIndex = 0,
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        indicator = { tabPositions ->
+                            SecondaryIndicator(Modifier.tabIndicatorOffset(tabPositions[0]), color = MaterialTheme.colorScheme.primary)
+                        }
+                    ) {
+                        Tab(
+                            selected = true, onClick = {},
+                            text = { Text(stringResource(Res.string.tab_gardening), fontWeight = FontWeight.Bold) },
+                            icon = { Icon(Icons.Filled.Grass, null) }
+                        )
+                        Tab(
+                            selected = false, onClick = {
+                                navController.popBackStack()
+                                navController.navigate(AppScreens.createAddAnimalDiaryRoute(initialDateMillis))
+                            },
+                            text = { Text(stringResource(Res.string.tab_animals), fontWeight = FontWeight.Bold) },
+                            icon = { Icon(Icons.Filled.Pets, null) }
+                        )
+                    }
+                }
+            }
         }
     ) { padding ->
         Column(

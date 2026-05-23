@@ -56,7 +56,12 @@ data class WeatherState(
     val temperature: Double = 0.0,
     val weatherCode: Int = 0,
     val isDay: Int = 1,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    // Campos nuevos — tienen valor por defecto para no romper nada
+    val feelsLike: Double = 0.0,
+    val humidity: Int = 0,
+    val precipitation: Double = 0.0,
+    val uvIndex: Double = 0.0
 )
 
 @Serializable
@@ -68,7 +73,15 @@ data class Content(
 data class WeatherResponse(val current: CurrentWeather)
 
 @Serializable
-data class CurrentWeather(val temperature_2m: Double, val weather_code: Int, val is_day: Int)
+data class CurrentWeather(
+    val temperature_2m: Double,
+    val weather_code: Int,
+    val is_day: Int,
+    val apparent_temperature: Double = 0.0,
+    val relative_humidity_2m: Int = 0,
+    val precipitation: Double = 0.0,
+    val uv_index: Double = 0.0
+)
 
 @Serializable
 data class GeminiPart(val text: String)
@@ -218,16 +231,21 @@ class GardenViewModel(
                 val lat = location?.first ?: 40.4168
                 val lon = location?.second ?: -3.7038
 
-                val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code,is_day"
+                val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon" +
+                        "&current=temperature_2m,weather_code,is_day,apparent_temperature,relative_humidity_2m,precipitation,uv_index"
 
                 // Asegúrate de que 'client' también esté definido en tu clase (HttpClient)
                 val response: WeatherResponse = client.get(url).body()
 
                 _weatherState.value = WeatherState(
-                    temperature = response.current.temperature_2m,
-                    weatherCode = response.current.weather_code,
-                    isDay = response.current.is_day,
-                    isLoading = false
+                    temperature   = response.current.temperature_2m,
+                    weatherCode   = response.current.weather_code,
+                    isDay         = response.current.is_day,
+                    feelsLike     = response.current.apparent_temperature,
+                    humidity      = response.current.relative_humidity_2m,
+                    precipitation = response.current.precipitation,
+                    uvIndex       = response.current.uv_index,
+                    isLoading     = false
                 )
             } catch (e: Exception) {
                 e.printStackTrace()

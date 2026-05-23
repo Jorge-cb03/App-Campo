@@ -11,13 +11,13 @@ import com.example.proyecto.data.database.entity.*
         BancalEntity::class,
         ProductoEntity::class,
         EntradaDiarioEntity::class,
-        EntradaDiarioAnimalEntity::class,
         CercadoEntity::class,
         AlertaEntity::class,
         AnimalEntity::class,
-        UsuarioEntity::class
+        UsuarioEntity::class,
+        EntradaDiarioAnimalEntity::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

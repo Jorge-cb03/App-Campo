@@ -30,9 +30,11 @@ import com.example.proyecto.ui.animals.AnimalsScreen
 import com.example.proyecto.ui.alerts.AlertsScreen
 import com.example.proyecto.ui.animals.AddAnimalScreen
 import com.example.proyecto.ui.animals.AnimalGroupDetailScreen
+import com.example.proyecto.ui.diary.AddDiaryEntryAnimalScreen
 
 // ---> IMPORTACIÓN VITAL PARA QUE ENCUENTRE LA IA <---
 import com.example.proyecto.ui.chat.ChatScreen
+import com.example.proyecto.ui.diary.AnimalDiaryDetailScreen
 
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
@@ -61,6 +63,9 @@ object AppScreens {
     const val DiaryDetail = "diary_detail/{taskId}"
     fun createDiaryDetailRoute(taskId: Long) = "diary_detail/$taskId"
 
+    const val AddAnimalDiaryEntry = "diary_fauna_task/{dateMillis}?taskId={taskId}"
+    fun createAddAnimalDiaryRoute(dateMillis: Long, taskId: Long? = null) =
+        if (taskId != null) "diary_fauna_task/$dateMillis?taskId=$taskId" else "diary_fauna_task/$dateMillis"
     const val AddProduct = "add_product?productId={productId}"
     fun createEditProductRoute(productId: Long) = "add_product?productId=$productId"
 
@@ -119,6 +124,24 @@ fun AppNavigation(isDarkTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
                 val dateMillis = backStackEntry.arguments?.getLong("dateMillis") ?: 0L
                 val taskId = backStackEntry.arguments?.getString("taskId")
                 AddDiaryEntryScreen(navController, dateMillis, taskId)
+            }
+            composable(
+                route = AppScreens.AddAnimalDiaryEntry,
+                arguments = listOf(
+                    navArgument("dateMillis") { type = NavType.LongType },
+                    navArgument("taskId") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
+            ) { backStackEntry ->
+                val dateMillis = backStackEntry.arguments?.getLong("dateMillis") ?: 0L
+                val taskId = backStackEntry.arguments?.getString("taskId")
+                AddDiaryEntryAnimalScreen(navController, dateMillis, taskId)
+            }
+            composable(
+                route = "animal_diary_detail/{taskId}",
+                arguments = listOf(navArgument("taskId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getLong("taskId") ?: 0L
+                AnimalDiaryDetailScreen(navController, taskId)
             }
             composable(AppScreens.DiaryDetail, arguments = listOf(navArgument("taskId") { type = NavType.LongType })) {
                 DiaryDetailScreen(navController, it.arguments?.getLong("taskId") ?: 0L)
