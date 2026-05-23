@@ -2,8 +2,9 @@ package com.example.proyecto
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.proyecto.di.appModule
-import com.example.proyecto.ui.navigation.AppNavigation // <-- ESTO FALTABA
+import com.example.proyecto.ui.navigation.AppNavigation 
 import com.example.proyecto.ui.theme.ProyectoTheme
 import org.koin.compose.KoinApplication
 
@@ -17,7 +18,7 @@ fun App() {
         val systemDark = isSystemInDarkTheme()
 
         // 2. Creamos un estado para poder cambiar el tema manualmente si queremos
-        var isDarkTheme by remember { mutableStateOf(systemDark) }
+        var isDarkTheme by rememberSaveable { mutableStateOf(false) }
 
         ProyectoTheme(darkTheme = isDarkTheme) {
             AppNavigation(

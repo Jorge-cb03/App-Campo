@@ -87,8 +87,9 @@ fun GardenScreen(
                 title = {
                     Text(
                         text = currentJardinera?.nombre ?: stringResource(Res.string.garden_default_title),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 20.sp
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

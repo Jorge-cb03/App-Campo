@@ -398,5 +398,11 @@
     <string name="success_animal_deleted">The animal has been removed and recorded in the diary.</string>
     <string name="success_animal_edited">The animal\'s data has been updated successfully.</string>
     <string name="success_eggs_collected">Production recorded! The eggs have been added to the product inventory.</string>
+
     <string name="success_feed_given">Feeding recorded! The feed has been deducted from the inventory.</string>
+    <string name="about_dev_role">Desarrollador Principal &amp; Creador</string>
+    <string name="about_dev_desc">Apasionado por la tecnología y la agricultura, desarrollando soluciones para digitalizar y mejorar la gestión del campo.</string>
+    <string name="about_github">Ver mi GitHub</string>
+    <string name="about_linkedin">Ver mi LinkedIn</string>
+    <string name="about_back">Cerrar</string>
 </resources>

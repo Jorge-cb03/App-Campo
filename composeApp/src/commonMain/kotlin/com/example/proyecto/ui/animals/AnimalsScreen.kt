@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.proyecto.data.database.entity.CercadoEntity
 import huertomanager.composeapp.generated.resources.*
@@ -33,7 +34,15 @@ fun AnimalsScreen(navController: NavController, viewModel: AnimalsViewModel = ko
     var cercadoAEditar by remember { mutableStateOf<CercadoEntity?>(null) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(Res.string.farm_management_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(Res.string.farm_management_title),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
+        }) },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate("add_animal") }) {
                 Icon(Icons.Default.Add, null)
