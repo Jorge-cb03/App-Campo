@@ -440,4 +440,23 @@
 
     <string name="animal_diary_register_btn">Registrar en cercado</string>
     <string name="animal_diary_success_msg">Tarea de animales registrada correctamente.</string>
+
+    <string name="edit_cercado_menu">Editar cercado</string>
+    <string name="delete_cercado_menu">Eliminar cercado</string>
+
+    <string name="confirm_delete_cercado_title">Eliminar cercado</string>
+    <string name="confirm_delete_cercado_msg">Este cercado tiene %1$d animal(es). ¿Quieres eliminarlos o moverlos a otro cercado?</string>
+    <string name="confirm_delete_cercado_empty_msg">¿Seguro que quieres eliminar este cercado? La acción no se puede deshacer.</string>
+
+    <string name="btn_delete_all">Eliminar todo</string>
+    <string name="btn_move_animals">Mover animales</string>
+
+    <string name="move_animals_title">Mover animales</string>
+    <string name="move_animals_msg">Selecciona el cercado al que mover los %1$d animal(es) antes de eliminar este cercado.</string>
+    <string name="no_other_cercados">No hay otros cercados disponibles</string>
+    <string name="btn_move_and_delete">Mover y eliminar</string>
+
+    <string name="success_cercado_edited">El cercado ha sido actualizado correctamente.</string>
+    <string name="success_cercado_deleted">El cercado y sus animales han sido eliminados.</string>
+    <string name="success_animals_moved">Los animales han sido trasladados y el cercado eliminado.</string>
 </resources>

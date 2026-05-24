@@ -41,7 +41,6 @@ class AnimalRepository(
 
     suspend fun insertCercado(cercado: CercadoEntity) {
         val id = animalDao.insertCercado(cercado)
-        // Subida a Firebase
         syncToFirebase("cercados", id.toString(), mapOf(
             "id" to id,
             "numero" to cercado.numero,
@@ -51,12 +50,46 @@ class AnimalRepository(
 
     suspend fun updateCercado(cercado: CercadoEntity) {
         animalDao.updateCercado(cercado)
-        // Actualización en Firebase
         syncToFirebase("cercados", cercado.id.toString(), mapOf(
             "id" to cercado.id,
             "numero" to cercado.numero,
             "nombre" to cercado.nombre
         ))
+    }
+
+    /**
+     * Elimina el cercado de Room y de Firebase.
+     * No toca los animales: el llamador decide antes si los elimina o mueve.
+     */
+    suspend fun deleteCercado(cercado: CercadoEntity) {
+        animalDao.deleteCercado(cercado)
+        deleteFromFirebase("cercados", cercado.id.toString())
+    }
+
+    /**
+     * Mueve todos los animales de [origenId] al [destinoId] en Room y en Firebase.
+     */
+    suspend fun moverAnimalesACercado(origenId: Long, destinoId: Long) {
+        animalDao.moverAnimalesACercado(origenId, destinoId)
+
+        // Reflejamos el cambio en Firebase para cada animal afectado
+        // (actualizamos el campo cercadoId en cada documento)
+        val user = auth.currentUser ?: return
+        try {
+            val animalesNube = firestore
+                .collection("usuarios").document(user.uid)
+                .collection("animales").get()
+
+            animalesNube.documents
+                .filter { (it.get("cercadoId") as? Number)?.toLong() == origenId }
+                .forEach { doc ->
+                    firestore.collection("usuarios").document(user.uid)
+                        .collection("animales").document(doc.id)
+                        .update(mapOf("cercadoId" to destinoId))
+                }
+        } catch (e: Exception) {
+            println("Error actualizando cercadoId en Firebase: ${e.message}")
+        }
     }
 
     // ==========================================
@@ -66,7 +99,6 @@ class AnimalRepository(
 
     suspend fun insertAnimal(animal: AnimalEntity) {
         val id = animalDao.insertAnimal(animal)
-        // Subida a Firebase
         syncToFirebase("animales", id.toString(), mapOf(
             "id" to id,
             "nombre" to animal.nombre,
@@ -80,7 +112,6 @@ class AnimalRepository(
 
     suspend fun updateAnimal(animal: AnimalEntity) {
         animalDao.updateAnimal(animal)
-        // Actualización en Firebase
         syncToFirebase("animales", animal.id.toString(), mapOf(
             "id" to animal.id,
             "nombre" to animal.nombre,
@@ -94,23 +125,18 @@ class AnimalRepository(
 
     suspend fun deleteAnimal(animal: AnimalEntity) {
         animalDao.deleteAnimal(animal)
-        // Borrado en Firebase
         deleteFromFirebase("animales", animal.id.toString())
     }
 
     // ==========================================
     // DIARIO ANIMALES
     // ==========================================
-
-    // CORRECCIÓN: Usamos getAllLogs() que es la función real en tu DAO
     fun getDiarioAnimales(): Flow<List<EntradaDiarioAnimalEntity>> = diarioDao.getAllLogs()
 
-    // CORRECCIÓN: Usamos getById() que es la función real en tu DAO
     suspend fun getDiarioAnimalPorId(id: Long): EntradaDiarioAnimalEntity? = diarioDao.getById(id)
 
     suspend fun insertarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) {
         val id = diarioDao.insert(entrada)
-        // Subida a Firebase (No subimos fotos en ByteArray a Firestore por rendimiento)
         syncToFirebase("diario_animales", id.toString(), mapOf(
             "id" to id,
             "cercadoId" to entrada.cercadoId,
@@ -124,7 +150,6 @@ class AnimalRepository(
 
     suspend fun actualizarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) {
         diarioDao.update(entrada)
-        // Actualización en Firebase
         syncToFirebase("diario_animales", entrada.id.toString(), mapOf(
             "id" to entrada.id,
             "cercadoId" to entrada.cercadoId,
@@ -138,7 +163,6 @@ class AnimalRepository(
 
     suspend fun eliminarDiarioAnimal(id: Long) {
         diarioDao.deleteById(id)
-        // Borrado en Firebase
         deleteFromFirebase("diario_animales", id.toString())
     }
 
@@ -175,23 +199,14 @@ class AnimalRepository(
     suspend fun descargarDatosNube() {
         val user = auth.currentUser ?: return
         try {
-            // Sincronizar Cercados
             val cercadosNube = firestore.collection("usuarios").document(user.uid).collection("cercados").get()
             cercadosNube.documents.forEach { doc ->
                 val id = doc.get("id") as? Long ?: return@forEach
                 val numero = (doc.get("numero") as? Number)?.toInt() ?: 0
                 val nombre = doc.get("nombre") as? String ?: ""
-
-                animalDao.insertCercado(
-                    CercadoEntity(
-                        id = id,
-                        numero = numero,
-                        nombre = nombre
-                    )
-                )
+                animalDao.insertCercado(CercadoEntity(id = id, numero = numero, nombre = nombre))
             }
 
-            // Sincronizar Animales
             val animalesNube = firestore.collection("usuarios").document(user.uid).collection("animales").get()
             animalesNube.documents.forEach { doc ->
                 val id = doc.get("id") as? Long ?: return@forEach
@@ -201,24 +216,15 @@ class AnimalRepository(
                 val esPonedora = doc.get("esPonedora") as? Boolean ?: false
                 val compatibilidad = doc.get("compatibilidad") as? String ?: "General"
                 val fecha = (doc.get("fechaNacimiento") as? Number)?.toLong() ?: System.currentTimeMillis()
-
-                // Usamos parámetros nombrados para evitar desajustes de tipos
                 animalDao.insertAnimal(
                     AnimalEntity(
-                        id = id,
-                        nombre = nombre,
-                        tipo = tipo,
-                        cercadoId = cercadoId,
-                        esPonedora = esPonedora,
-                        raza = null,
-                        fechaNacimiento = fecha,
-                        fotoPerfil = null,
-                        compatibilidad = compatibilidad
+                        id = id, nombre = nombre, tipo = tipo, cercadoId = cercadoId,
+                        esPonedora = esPonedora, raza = null, fechaNacimiento = fecha,
+                        fotoPerfil = null, compatibilidad = compatibilidad
                     )
                 )
             }
 
-            // Sincronizar Diario Animales
             val diarioNube = firestore.collection("usuarios").document(user.uid).collection("diario_animales").get()
             diarioNube.documents.forEach { doc ->
                 val id = doc.get("id") as? Long ?: return@forEach
@@ -228,17 +234,11 @@ class AnimalRepository(
                 val descripcion = doc.get("descripcion") as? String ?: ""
                 val cantidad = (doc.get("cantidad") as? Number)?.toDouble() ?: 0.0
                 val fecha = (doc.get("fecha") as? Number)?.toLong() ?: System.currentTimeMillis()
-
                 diarioDao.insert(
                     EntradaDiarioAnimalEntity(
-                        id = id,
-                        cercadoId = cercadoId,
-                        animalTipo = animalTipo,
-                        tipoAccion = tipoAccion,
-                        descripcion = descripcion,
-                        cantidad = cantidad,
-                        fecha = fecha,
-                        foto = null
+                        id = id, cercadoId = cercadoId, animalTipo = animalTipo,
+                        tipoAccion = tipoAccion, descripcion = descripcion,
+                        cantidad = cantidad, fecha = fecha, foto = null
                     )
                 )
             }

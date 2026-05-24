@@ -37,4 +37,10 @@ interface AnimalDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAnimal(animal: AnimalEntity): Long
+    @Delete
+    suspend fun deleteCercado(cercado: CercadoEntity)
+
+    // 2. Mover todos los animales de un cercado a otro (una sola query)
+    @Query("UPDATE animales SET cercadoId = :destinoId WHERE cercadoId = :origenId")
+    suspend fun moverAnimalesACercado(origenId: Long, destinoId: Long)
 }

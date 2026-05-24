@@ -21,7 +21,6 @@ class AnimalsViewModel(
 ) : ViewModel() {
 
     init {
-        // Al arrancar, descarga los datos de la nube automáticamente
         viewModelScope.launch {
             animalRepository.descargarDatosNube()
         }
@@ -30,13 +29,10 @@ class AnimalsViewModel(
     val animales: Flow<List<AnimalEntity>> = animalRepository.getAllAnimales()
     val cercados: Flow<List<CercadoEntity>> = animalRepository.getAllCercados()
     val catalogo: List<FichaAnimal> = animalRepository.getCatalogo()
-
-    // --- DIARIO DE ANIMALES ---
     val diarioAnimales: Flow<List<EntradaDiarioAnimalEntity>> = animalRepository.getDiarioAnimales()
 
-    suspend fun getEntradaDiarioAnimalById(id: Long): EntradaDiarioAnimalEntity? {
-        return animalRepository.getDiarioAnimalPorId(id)
-    }
+    suspend fun getEntradaDiarioAnimalById(id: Long): EntradaDiarioAnimalEntity? =
+        animalRepository.getDiarioAnimalPorId(id)
 
     fun eliminarEntradaDiarioAnimal(id: Long) {
         viewModelScope.launch { animalRepository.eliminarDiarioAnimal(id) }
@@ -48,14 +44,110 @@ class AnimalsViewModel(
         animalRepository.insertCercado(CercadoEntity(numero = numero, nombre = nombre))
     }
 
-    // --- ACCIONES CON REGISTRO AUTOMÁTICO EN DIARIO ---
+    // ==========================================
+    // GESTIÓN DE CERCADOS
+    // ==========================================
+
+    fun editarCercado(cercado: CercadoEntity, nuevoNumero: Int, nuevoNombre: String) {
+        viewModelScope.launch {
+            animalRepository.updateCercado(cercado.copy(numero = nuevoNumero, nombre = nuevoNombre))
+        }
+    }
+
+    /**
+     * Elimina el cercado junto con TODOS sus animales.
+     * Registra una entrada BAJA en el diario por cada animal eliminado,
+     * y una entrada ELIMINACIÓN DE CERCADO al final.
+     */
+    fun eliminarCercadoConAnimales(cercado: CercadoEntity, animales: List<AnimalEntity>) {
+        viewModelScope.launch {
+            val nombreCercado = "${cercado.numero} - ${cercado.nombre}"
+
+            // 1. Dar de baja cada animal y registrarlo en el diario
+            animales.forEach { animal ->
+                animalRepository.deleteAnimal(animal)
+                animalRepository.insertarDiarioAnimal(
+                    EntradaDiarioAnimalEntity(
+                        cercadoId = cercado.id,
+                        animalTipo = animal.tipo,
+                        tipoAccion = "BAJA ANIMAL",
+                        descripcion = "Baja de ${animal.nombre} (${animal.tipo}) por eliminación del Cercado $nombreCercado.",
+                        cantidad = 1.0
+                    )
+                )
+            }
+
+            // 2. Registrar la eliminación del propio cercado en el diario
+            animalRepository.insertarDiarioAnimal(
+                EntradaDiarioAnimalEntity(
+                    cercadoId = cercado.id,
+                    animalTipo = "",
+                    tipoAccion = "ELIMINACIÓN CERCADO",
+                    descripcion = "Se eliminó el Cercado $nombreCercado con ${animales.size} animal(es).",
+                    cantidad = animales.size.toDouble()
+                )
+            )
+
+            // 3. Eliminar el cercado
+            animalRepository.deleteCercado(cercado)
+        }
+    }
+
+    /**
+     * Mueve todos los animales de [origen] al [destino] y luego elimina el cercado origen.
+     * Registra el traslado de cada animal en el diario.
+     */
+    fun moverAnimalesYEliminarCercado(
+        origen: CercadoEntity,
+        animales: List<AnimalEntity>,
+        destino: CercadoEntity
+    ) {
+        viewModelScope.launch {
+            val nombreOrigen = "${origen.numero} - ${origen.nombre}"
+            val nombreDestino = "${destino.numero} - ${destino.nombre}"
+
+            // 1. Mover todos los animales en bloque (una sola query UPDATE en Room)
+            animalRepository.moverAnimalesACercado(origen.id, destino.id)
+
+            // 2. Registrar el traslado de cada animal en el diario
+            animales.forEach { animal ->
+                animalRepository.insertarDiarioAnimal(
+                    EntradaDiarioAnimalEntity(
+                        cercadoId = destino.id,
+                        animalTipo = animal.tipo,
+                        tipoAccion = "TRASLADO",
+                        descripcion = "${animal.nombre} (${animal.tipo}) trasladado de Cercado $nombreOrigen a Cercado $nombreDestino.",
+                        cantidad = 1.0
+                    )
+                )
+            }
+
+            // 3. Registrar la eliminación del cercado origen en el diario
+            animalRepository.insertarDiarioAnimal(
+                EntradaDiarioAnimalEntity(
+                    cercadoId = origen.id,
+                    animalTipo = "",
+                    tipoAccion = "ELIMINACIÓN CERCADO",
+                    descripcion = "Cercado $nombreOrigen eliminado. ${animales.size} animal(es) trasladado(s) a Cercado $nombreDestino.",
+                    cantidad = animales.size.toDouble()
+                )
+            )
+
+            // 4. Eliminar el cercado origen
+            animalRepository.deleteCercado(origen)
+        }
+    }
+
+    // ==========================================
+    // ACCIONES CON REGISTRO AUTOMÁTICO EN DIARIO
+    // ==========================================
 
     fun registrarPuestaGrupo(cercado: CercadoEntity, tipo: String, cantidad: Double) {
         viewModelScope.launch {
             val (nombreRes, urlFoto) = when (tipo.uppercase().trim()) {
                 "GALLINA" -> Res.string.product_egg_gallina to "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"
-                "OCA" -> Res.string.product_egg_oca to "https://plus.unsplash.com/premium_photo-1675731320300-34907106d64d?q=80&w=400"
-                else -> Res.string.product_egg_gallina to ""
+                "OCA"     -> Res.string.product_egg_oca to "https://plus.unsplash.com/premium_photo-1675731320300-34907106d64d?q=80&w=400"
+                else      -> Res.string.product_egg_gallina to ""
             }
             val nombreTraducido = getString(nombreRes)
             val productos = jardineraRepository.getProductos().first()
@@ -102,24 +194,19 @@ class AnimalsViewModel(
         }
     }
 
-    // ALTAS Y BAJAS CON REGISTRO EN DIARIO
     fun addAnimal(nombre: String, tipo: String, cercadoId: Long, esPonedora: Boolean, foto: ByteArray?) {
         viewModelScope.launch {
             val ficha = getFichaPorNombre(tipo)
             animalRepository.insertAnimal(
                 AnimalEntity(
-                    nombre = nombre,
-                    tipo = tipo,
-                    cercadoId = cercadoId,
-                    esPonedora = esPonedora,
-                    raza = null,
+                    nombre = nombre, tipo = tipo, cercadoId = cercadoId,
+                    esPonedora = esPonedora, raza = null,
                     fechaNacimiento = System.currentTimeMillis(),
                     fotoPerfil = foto,
                     compatibilidad = ficha?.compatibilidad ?: "General"
                 )
             )
 
-            // Registro de Alta en el diario
             val cercadosList = animalRepository.getAllCercados().first()
             val cercado = cercadosList.find { it.id == cercadoId }
             val nombreCercado = cercado?.let { "${it.numero} - ${it.nombre}" } ?: "Desconocido"
@@ -139,12 +226,9 @@ class AnimalsViewModel(
     fun borrarAnimal(animal: AnimalEntity) {
         viewModelScope.launch {
             animalRepository.deleteAnimal(animal)
-
-            // Registro de Baja en el diario
             val cercadosList = animalRepository.getAllCercados().first()
             val cercado = cercadosList.find { it.id == animal.cercadoId }
             val nombreCercado = cercado?.let { "${it.numero} - ${it.nombre}" } ?: "Desconocido"
-
             animalRepository.insertarDiarioAnimal(
                 EntradaDiarioAnimalEntity(
                     cercadoId = animal.cercadoId,
@@ -172,12 +256,6 @@ class AnimalsViewModel(
         }
     }
 
-    fun editarCercado(cercado: CercadoEntity, nuevoNumero: Int, nuevoNombre: String) {
-        viewModelScope.launch {
-            animalRepository.updateCercado(cercado.copy(numero = nuevoNumero, nombre = nuevoNombre))
-        }
-    }
-
     fun guardarEntradaDiarioAnimal(
         id: Long = 0L,
         cercadoId: Long,
@@ -190,14 +268,9 @@ class AnimalsViewModel(
         viewModelScope.launch {
             animalRepository.insertarDiarioAnimal(
                 EntradaDiarioAnimalEntity(
-                    id = id,
-                    cercadoId = cercadoId,
-                    animalTipo = "",
-                    tipoAccion = tipo,
-                    descripcion = desc,
-                    cantidad = cantidad.toDouble(),
-                    fecha = fecha,
-                    foto = foto
+                    id = id, cercadoId = cercadoId, animalTipo = "",
+                    tipoAccion = tipo, descripcion = desc,
+                    cantidad = cantidad.toDouble(), fecha = fecha, foto = foto
                 )
             )
         }
