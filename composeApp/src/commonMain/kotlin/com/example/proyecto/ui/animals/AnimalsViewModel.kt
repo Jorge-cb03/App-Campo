@@ -2,7 +2,6 @@ package com.example.proyecto.ui.animals
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto.data.database.entity.AnimalEntity
 import com.example.proyecto.data.database.entity.CercadoEntity
 import com.example.proyecto.data.database.entity.ProductoEntity
@@ -21,12 +20,23 @@ class AnimalsViewModel(
     private val jardineraRepository: JardineraRepository
 ) : ViewModel() {
 
+    init {
+        // Al arrancar, descarga los datos de la nube automáticamente
+        viewModelScope.launch {
+            animalRepository.descargarDatosNube()
+        }
+    }
+
     val animales: Flow<List<AnimalEntity>> = animalRepository.getAllAnimales()
     val cercados: Flow<List<CercadoEntity>> = animalRepository.getAllCercados()
     val catalogo: List<FichaAnimal> = animalRepository.getCatalogo()
 
     // --- DIARIO DE ANIMALES ---
     val diarioAnimales: Flow<List<EntradaDiarioAnimalEntity>> = animalRepository.getDiarioAnimales()
+
+    suspend fun getEntradaDiarioAnimalById(id: Long): EntradaDiarioAnimalEntity? {
+        return animalRepository.getDiarioAnimalPorId(id)
+    }
 
     fun eliminarEntradaDiarioAnimal(id: Long) {
         viewModelScope.launch { animalRepository.eliminarDiarioAnimal(id) }
@@ -52,21 +62,9 @@ class AnimalsViewModel(
             val existe = productos.find { it.nombre == nombreTraducido }
 
             if (existe != null) {
-                jardineraRepository.insertarProducto(
-                    existe.copy(
-                        stock = existe.stock + cantidad,
-                        imagenUrl = urlFoto
-                    )
-                )
+                jardineraRepository.insertarProducto(existe.copy(stock = existe.stock + cantidad, imagenUrl = urlFoto))
             } else {
-                jardineraRepository.insertarProducto(
-                    ProductoEntity(
-                        nombre = nombreTraducido,
-                        categoria = "ANIMAL_PROD",
-                        stock = cantidad,
-                        imagenUrl = urlFoto
-                    )
-                )
+                jardineraRepository.insertarProducto(ProductoEntity(nombre = nombreTraducido, categoria = "ANIMAL_PROD", stock = cantidad, imagenUrl = urlFoto))
             }
 
             val desc = getString(Res.string.diary_collect_msg, cantidad, nombreTraducido)
@@ -86,21 +84,10 @@ class AnimalsViewModel(
         viewModelScope.launch {
             val nombrePienso = getString(Res.string.product_pienso)
             val productos = jardineraRepository.getProductos().first()
-            val pienso = productos.find {
-                it.categoria == "PIENSO" || it.nombre.contains(
-                    nombrePienso,
-                    true
-                )
-            }
+            val pienso = productos.find { it.categoria == "PIENSO" || it.nombre.contains(nombrePienso, true) }
 
             if (pienso != null) {
-                jardineraRepository.insertarProducto(
-                    pienso.copy(
-                        stock = (pienso.stock - cantidadSacos).coerceAtLeast(
-                            0.0
-                        )
-                    )
-                )
+                jardineraRepository.insertarProducto(pienso.copy(stock = (pienso.stock - cantidadSacos).coerceAtLeast(0.0)))
                 val desc = getString(Res.string.diary_feed_msg, cantidadSacos, tipo)
                 animalRepository.insertarDiarioAnimal(
                     EntradaDiarioAnimalEntity(
@@ -116,13 +103,7 @@ class AnimalsViewModel(
     }
 
     // ALTAS Y BAJAS CON REGISTRO EN DIARIO
-    fun addAnimal(
-        nombre: String,
-        tipo: String,
-        cercadoId: Long,
-        esPonedora: Boolean,
-        foto: ByteArray?
-    ) {
+    fun addAnimal(nombre: String, tipo: String, cercadoId: Long, esPonedora: Boolean, foto: ByteArray?) {
         viewModelScope.launch {
             val ficha = getFichaPorNombre(tipo)
             animalRepository.insertAnimal(
@@ -220,8 +201,5 @@ class AnimalsViewModel(
                 )
             )
         }
-    }
-    suspend fun getEntradaDiarioAnimalById(id: Long): EntradaDiarioAnimalEntity? {
-        return animalRepository.getDiarioAnimalPorId(id)
     }
 }

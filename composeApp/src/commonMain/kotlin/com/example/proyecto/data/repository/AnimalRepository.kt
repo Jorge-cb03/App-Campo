@@ -9,9 +9,10 @@ import dev.gitlive.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
 
 data class FichaAnimal(
-    val id: Int, val nombre: String, val nombreCientifico: String,
-    val imagenUrl: String, val esPonedora: Boolean,
-    val alimentacion: String, val compatibilidad: String, val consejo: String
+    val nombre: String,
+    val esPonedora: Boolean,
+    val compatibilidad: String,
+    val imagenUrl: String
 )
 
 class AnimalRepository(
@@ -20,100 +21,229 @@ class AnimalRepository(
     private val auth: FirebaseAuth
 ) {
     private val animalDao = db.animalDao()
-    private val diarioAnimalDao = db.diarioAnimalDao()
+    private val diarioDao = db.diarioAnimalDao()
 
-    private val catalogoAnimales = listOf(
-        FichaAnimal(1, "Gallina", "Gallus gallus", "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=500", true, "Granos", "Aves", "Lugar seco."),
-        FichaAnimal(2, "Oca", "Anser anser", "https://images.unsplash.com/photo-1555610817-21443657374b?q=80&w=500", true, "Hierba", "Gallinas", "Son guardianas."),
-        FichaAnimal(3, "Perdiz", "Alectoris rufa", "https://images.unsplash.com/photo-1628172151664-98442e2025df?q=80&w=500", true, "Semillas", "Aves pequeñas", "Necesitan limpieza."),
-        FichaAnimal(4, "Perro Pastor", "Canis lupus", "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=500", false, "Pienso", "Ganado", "Entrenamiento vital."),
-        FichaAnimal(5, "Pato", "Anas platyrhynchos", "https://images.unsplash.com/photo-1454561021425-4528f41121d5?q=80&w=500", true, "Plantas acuáticas", "Aves", "Necesitan agua.")
+    fun getCatalogo(): List<FichaAnimal> = listOf(
+        FichaAnimal("Gallina", true, "Aves", "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=400"),
+        FichaAnimal("Oca", true, "Aves", "https://plus.unsplash.com/premium_photo-1675731320300-34907106d64d?q=80&w=400"),
+        FichaAnimal("Perdiz", true, "Aves", "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"),
+        FichaAnimal("Codorniz", true, "Aves", "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"),
+        FichaAnimal("Pato", true, "Aves", "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"),
+        FichaAnimal("Perro Pastor", false, "Perros", "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400")
     )
 
-    fun getCatalogo() = catalogoAnimales
-    fun getFichaPorNombre(nombre: String) = catalogoAnimales.find { it.nombre.equals(nombre, ignoreCase = true) }
+    fun getFichaPorNombre(tipo: String) = getCatalogo().find { it.nombre.equals(tipo, ignoreCase = true) }
 
-    // --- HELPER MULTI-TENANT (Misma lógica que la Huerta) ---
-    private fun getUserCollection(collectionName: String): dev.gitlive.firebase.firestore.CollectionReference? {
-        val currentUser = auth.currentUser
-        return if (currentUser != null) {
-            firestore.collection("usuarios").document(currentUser.uid).collection(collectionName)
-        } else null
-    }
+    // ==========================================
+    // CERCADOS
+    // ==========================================
+    fun getAllCercados(): Flow<List<CercadoEntity>> = animalDao.getAllCercados()
 
-    // ================= LECTURAS LOCALES (Rápidas) =================
-    fun getAllAnimales() = animalDao.getAllAnimales()
-    fun getAllCercados() = animalDao.getAllCercados()
-    fun getDiarioAnimales(): Flow<List<EntradaDiarioAnimalEntity>> = diarioAnimalDao.getAllLogs()
-
-    // ================= GESTIÓN DE CERCADOS =================
     suspend fun insertCercado(cercado: CercadoEntity) {
-        val localId = animalDao.insertCercado(cercado)
-        try {
-            getUserCollection("cercados")?.let { col ->
-                val docRef = col.add(cercado.copy(id = localId))
-                animalDao.updateCercadoRemoteId(localId, docRef.id)
-            }
-        } catch (e: Exception) { println("Error Firebase Cercado: ${e.message}") }
+        val id = animalDao.insertCercado(cercado)
+        // Subida a Firebase
+        syncToFirebase("cercados", id.toString(), mapOf(
+            "id" to id,
+            "numero" to cercado.numero,
+            "nombre" to cercado.nombre
+        ))
     }
 
     suspend fun updateCercado(cercado: CercadoEntity) {
         animalDao.updateCercado(cercado)
-        try {
-            cercado.remoteId?.let { rId -> getUserCollection("cercados")?.document(rId)?.set(cercado) }
-        } catch (e: Exception) { println("Error Firebase Cercado Update: ${e.message}") }
+        // Actualización en Firebase
+        syncToFirebase("cercados", cercado.id.toString(), mapOf(
+            "id" to cercado.id,
+            "numero" to cercado.numero,
+            "nombre" to cercado.nombre
+        ))
     }
 
-    // ================= GESTIÓN DE ANIMALES =================
+    // ==========================================
+    // ANIMALES
+    // ==========================================
+    fun getAllAnimales(): Flow<List<AnimalEntity>> = animalDao.getAllAnimales()
+
     suspend fun insertAnimal(animal: AnimalEntity) {
-        val localId = animalDao.insertAnimal(animal)
-        try {
-            getUserCollection("animales")?.let { col ->
-                val docRef = col.add(animal.copy(id = localId))
-                animalDao.updateAnimalRemoteId(localId, docRef.id)
-            }
-        } catch (e: Exception) { println("Error Firebase Animal: ${e.message}") }
+        val id = animalDao.insertAnimal(animal)
+        // Subida a Firebase
+        syncToFirebase("animales", id.toString(), mapOf(
+            "id" to id,
+            "nombre" to animal.nombre,
+            "tipo" to animal.tipo,
+            "cercadoId" to animal.cercadoId,
+            "esPonedora" to animal.esPonedora,
+            "compatibilidad" to animal.compatibilidad,
+            "fechaNacimiento" to animal.fechaNacimiento
+        ))
     }
 
     suspend fun updateAnimal(animal: AnimalEntity) {
         animalDao.updateAnimal(animal)
-        try {
-            animal.remoteId?.let { rId -> getUserCollection("animales")?.document(rId)?.set(animal) }
-        } catch (e: Exception) { println("Error Firebase Animal Update: ${e.message}") }
+        // Actualización en Firebase
+        syncToFirebase("animales", animal.id.toString(), mapOf(
+            "id" to animal.id,
+            "nombre" to animal.nombre,
+            "tipo" to animal.tipo,
+            "cercadoId" to animal.cercadoId,
+            "esPonedora" to animal.esPonedora,
+            "compatibilidad" to animal.compatibilidad,
+            "fechaNacimiento" to animal.fechaNacimiento
+        ))
     }
 
     suspend fun deleteAnimal(animal: AnimalEntity) {
         animalDao.deleteAnimal(animal)
-        try {
-            animal.remoteId?.let { rId -> getUserCollection("animales")?.document(rId)?.delete() }
-        } catch (e: Exception) { println("Error Firebase Animal Delete: ${e.message}") }
+        // Borrado en Firebase
+        deleteFromFirebase("animales", animal.id.toString())
     }
 
-    // ================= GESTIÓN DEL DIARIO (GRANJA) =================
+    // ==========================================
+    // DIARIO ANIMALES
+    // ==========================================
+
+    // CORRECCIÓN: Usamos getAllLogs() que es la función real en tu DAO
+    fun getDiarioAnimales(): Flow<List<EntradaDiarioAnimalEntity>> = diarioDao.getAllLogs()
+
+    // CORRECCIÓN: Usamos getById() que es la función real en tu DAO
+    suspend fun getDiarioAnimalPorId(id: Long): EntradaDiarioAnimalEntity? = diarioDao.getById(id)
+
     suspend fun insertarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) {
-        val localId = diarioAnimalDao.insert(entrada)
-        try {
-            getUserCollection("diario_granja")?.let { col ->
-                val docRef = col.add(entrada.copy(id = localId))
-                diarioAnimalDao.updateRemoteId(localId, docRef.id)
-            }
-        } catch (e: Exception) { println("Error Firebase Diario Granja: ${e.message}") }
+        val id = diarioDao.insert(entrada)
+        // Subida a Firebase (No subimos fotos en ByteArray a Firestore por rendimiento)
+        syncToFirebase("diario_animales", id.toString(), mapOf(
+            "id" to id,
+            "cercadoId" to entrada.cercadoId,
+            "animalTipo" to entrada.animalTipo,
+            "tipoAccion" to entrada.tipoAccion,
+            "descripcion" to entrada.descripcion,
+            "cantidad" to entrada.cantidad,
+            "fecha" to entrada.fecha
+        ))
     }
-
-    suspend fun getDiarioAnimalPorId(id: Long): EntradaDiarioAnimalEntity? = diarioAnimalDao.getById(id)
 
     suspend fun actualizarDiarioAnimal(entrada: EntradaDiarioAnimalEntity) {
-        diarioAnimalDao.update(entrada)
-        try {
-            entrada.remoteId?.let { rId -> getUserCollection("diario_granja")?.document(rId)?.set(entrada) }
-        } catch (e: Exception) { println("Error Firebase Diario Granja Update: ${e.message}") }
+        diarioDao.update(entrada)
+        // Actualización en Firebase
+        syncToFirebase("diario_animales", entrada.id.toString(), mapOf(
+            "id" to entrada.id,
+            "cercadoId" to entrada.cercadoId,
+            "animalTipo" to entrada.animalTipo,
+            "tipoAccion" to entrada.tipoAccion,
+            "descripcion" to entrada.descripcion,
+            "cantidad" to entrada.cantidad,
+            "fecha" to entrada.fecha
+        ))
     }
 
     suspend fun eliminarDiarioAnimal(id: Long) {
-        val entrada = diarioAnimalDao.getById(id)
-        diarioAnimalDao.deleteById(id)
+        diarioDao.deleteById(id)
+        // Borrado en Firebase
+        deleteFromFirebase("diario_animales", id.toString())
+    }
+
+    // ==========================================
+    // FUNCIONES INTERNAS DE FIREBASE
+    // ==========================================
+    private suspend fun syncToFirebase(coleccion: String, documentId: String, data: Map<String, Any?>) {
+        val user = auth.currentUser
+        if (user != null) {
+            try {
+                firestore.collection("usuarios").document(user.uid)
+                    .collection(coleccion).document(documentId).set(data)
+            } catch (e: Exception) {
+                println("Error guardando en Firebase: ${e.message}")
+            }
+        }
+    }
+
+    private suspend fun deleteFromFirebase(coleccion: String, documentId: String) {
+        val user = auth.currentUser
+        if (user != null) {
+            try {
+                firestore.collection("usuarios").document(user.uid)
+                    .collection(coleccion).document(documentId).delete()
+            } catch (e: Exception) {
+                println("Error borrando de Firebase: ${e.message}")
+            }
+        }
+    }
+
+    // ==========================================
+    // SINCRONIZACIÓN AL INICIAR LA APP
+    // ==========================================
+    suspend fun descargarDatosNube() {
+        val user = auth.currentUser ?: return
         try {
-            entrada?.remoteId?.let { rId -> getUserCollection("diario_granja")?.document(rId)?.delete() }
-        } catch (e: Exception) { println("Error Firebase Diario Granja Delete: ${e.message}") }
+            // Sincronizar Cercados
+            val cercadosNube = firestore.collection("usuarios").document(user.uid).collection("cercados").get()
+            cercadosNube.documents.forEach { doc ->
+                val id = doc.get("id") as? Long ?: return@forEach
+                val numero = (doc.get("numero") as? Number)?.toInt() ?: 0
+                val nombre = doc.get("nombre") as? String ?: ""
+
+                animalDao.insertCercado(
+                    CercadoEntity(
+                        id = id,
+                        numero = numero,
+                        nombre = nombre
+                    )
+                )
+            }
+
+            // Sincronizar Animales
+            val animalesNube = firestore.collection("usuarios").document(user.uid).collection("animales").get()
+            animalesNube.documents.forEach { doc ->
+                val id = doc.get("id") as? Long ?: return@forEach
+                val nombre = doc.get("nombre") as? String ?: ""
+                val tipo = doc.get("tipo") as? String ?: ""
+                val cercadoId = (doc.get("cercadoId") as? Number)?.toLong() ?: 0L
+                val esPonedora = doc.get("esPonedora") as? Boolean ?: false
+                val compatibilidad = doc.get("compatibilidad") as? String ?: "General"
+                val fecha = (doc.get("fechaNacimiento") as? Number)?.toLong() ?: System.currentTimeMillis()
+
+                // Usamos parámetros nombrados para evitar desajustes de tipos
+                animalDao.insertAnimal(
+                    AnimalEntity(
+                        id = id,
+                        nombre = nombre,
+                        tipo = tipo,
+                        cercadoId = cercadoId,
+                        esPonedora = esPonedora,
+                        raza = null,
+                        fechaNacimiento = fecha,
+                        fotoPerfil = null,
+                        compatibilidad = compatibilidad
+                    )
+                )
+            }
+
+            // Sincronizar Diario Animales
+            val diarioNube = firestore.collection("usuarios").document(user.uid).collection("diario_animales").get()
+            diarioNube.documents.forEach { doc ->
+                val id = doc.get("id") as? Long ?: return@forEach
+                val cercadoId = (doc.get("cercadoId") as? Number)?.toLong() ?: 0L
+                val animalTipo = doc.get("animalTipo") as? String ?: ""
+                val tipoAccion = doc.get("tipoAccion") as? String ?: ""
+                val descripcion = doc.get("descripcion") as? String ?: ""
+                val cantidad = (doc.get("cantidad") as? Number)?.toDouble() ?: 0.0
+                val fecha = (doc.get("fecha") as? Number)?.toLong() ?: System.currentTimeMillis()
+
+                diarioDao.insert(
+                    EntradaDiarioAnimalEntity(
+                        id = id,
+                        cercadoId = cercadoId,
+                        animalTipo = animalTipo,
+                        tipoAccion = tipoAccion,
+                        descripcion = descripcion,
+                        cantidad = cantidad,
+                        fecha = fecha,
+                        foto = null
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            println("Error sincronizando de Firebase: ${e.message}")
+        }
     }
 }
