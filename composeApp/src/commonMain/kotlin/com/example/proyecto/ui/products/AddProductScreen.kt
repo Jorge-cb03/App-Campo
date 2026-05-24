@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -50,7 +49,6 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var scientificName by remember { mutableStateOf<String?>(null) }
     var selectedType by remember { mutableStateOf(ProductType.SEED) }
-
     var expandedType by remember { mutableStateOf(false) }
     var showApiSearchDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -85,18 +83,27 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
             TopAppBar(
                 title = { Text(if (isEditMode) stringResource(Res.string.product_edit_title) else stringResource(Res.string.product_add_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { padding ->
+        // ── CLAVE: imePadding() ANTES de verticalScroll ──────────────────────
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .imePadding()                          // ← sube el contenido con el teclado
+                .verticalScroll(rememberScrollState()) // ← scroll dentro del espacio restante
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
                 Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(stringResource(Res.string.product_tech_sheet), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-
                     if (!selectedImageUrl.isNullOrBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             AsyncImage(model = selectedImageUrl, contentDescription = null, modifier = Modifier.size(70.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
@@ -107,7 +114,6 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
                             }
                         }
                     }
-
                     Box {
                         OutlinedTextField(
                             value = stringResource(getLocalizedTypeName(selectedType)), onValueChange = {}, readOnly = true,
@@ -121,32 +127,16 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
                             }
                         }
                     }
-
                     if (isSeed || selectedType == ProductType.VEGETABLE) {
                         Button(
                             onClick = { showApiSearchDialog = true; searchQuery = ""; viewModel.buscarCultivoApi(""); keyboardController?.hide() },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                             shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.Search, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(Res.string.product_select_db))
-                        }
+                        ) { Icon(Icons.Default.Search, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.product_select_db)) }
                     }
-
-                    HuertaInput(
-                        value = name, onValueChange = { name = it },
-                        label = stringResource(Res.string.product_name_label),
-                        icon = Icons.Default.Edit, imeAction = ImeAction.Next
-                    )
-
-                    HuertaInput(
-                        value = stock, onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) stock = it },
-                        label = "${stringResource(Res.string.product_stock_label)} $unitLabel",
-                        icon = Icons.Default.Inventory, imeAction = ImeAction.Next
-                    )
-
+                    HuertaInput(value = name, onValueChange = { name = it }, label = stringResource(Res.string.product_name_label), icon = Icons.Default.Edit, imeAction = ImeAction.Next)
+                    HuertaInput(value = stock, onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) stock = it }, label = "${stringResource(Res.string.product_stock_label)} $unitLabel", icon = Icons.Default.Inventory, imeAction = ImeAction.Next)
                     OutlinedTextField(
                         value = notes, onValueChange = { notes = it },
                         label = { Text(stringResource(Res.string.product_notes_label)) },
@@ -157,15 +147,8 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
                     )
                 }
             }
-
             Button(
-                onClick = {
-                    viewModel.guardarProducto(
-                        id = productId ?: 0L, n = name, c = selectedType.name, s = stock.toDoubleOrNull() ?: 0.0,
-                        perenualId = perenualId, imagenUrl = selectedImageUrl, nombreCientifico = scientificName, notas = notes
-                    )
-                    showSuccessDialog = true
-                },
+                onClick = { viewModel.guardarProducto(id = productId ?: 0L, n = name, c = selectedType.name, s = stock.toDoubleOrNull() ?: 0.0, perenualId = perenualId, imagenUrl = selectedImageUrl, nombreCientifico = scientificName, notas = notes); showSuccessDialog = true },
                 modifier = Modifier.fillMaxWidth().height(56.dp), enabled = name.isNotBlank(), shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) { Text(if (isEditMode) stringResource(Res.string.product_save_changes) else stringResource(Res.string.product_save_sheet), fontSize = 16.sp, fontWeight = FontWeight.Bold) }
@@ -204,12 +187,10 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
             containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
-
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text(stringResource(Res.string.dialog_success_title)) },
-            text = { Text(msgSaved) },
+            title = { Text(stringResource(Res.string.dialog_success_title)) }, text = { Text(msgSaved) },
             confirmButton = { Button(onClick = { showSuccessDialog = false; navController.popBackStack() }) { Text(stringResource(Res.string.dialog_btn_ok)) } },
             containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )

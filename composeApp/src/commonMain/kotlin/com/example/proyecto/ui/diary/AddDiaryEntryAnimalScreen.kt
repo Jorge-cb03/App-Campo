@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -17,9 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Title
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -97,12 +94,10 @@ fun AddDiaryEntryAnimalScreen(
         if (taskId != null && diarioAnimales.isNotEmpty() && cercados.isNotEmpty()) {
             val idLong = taskId.toLongOrNull() ?: 0L
             val entrada = diarioAnimales.find { it.id == idLong }
-
             entrada?.let { ent ->
                 val partes = ent.descripcion.split(" | ", limit = 2)
                 title = partes[0]
                 if (partes.size > 1) description = partes[1]
-
                 selectedType = if (taskTypes.contains(ent.tipoAccion)) ent.tipoAccion else taskTypes.last()
                 selectedCercado = cercados.find { it.id == ent.cercadoId }
                 selectedDate = Instant.fromEpochMilliseconds(ent.fecha).toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -119,9 +114,12 @@ fun AddDiaryEntryAnimalScreen(
                 TopAppBar(
                     title = { Text(stringResource(if (isEditMode) Res.string.diary_edit_entry_title else Res.string.animal_diary_new_entry_title), fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Filled.ArrowBack, null) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = MaterialTheme.colorScheme.background
+                    ),
+                    windowInsets = WindowInsets(0, 0, 0, 0)
                 )
-
                 if (!isEditMode) {
                     TabRow(
                         selectedTabIndex = 1,
@@ -129,32 +127,28 @@ fun AddDiaryEntryAnimalScreen(
                         contentColor = MaterialTheme.colorScheme.primary,
                         indicator = { tabPositions -> SecondaryIndicator(Modifier.tabIndicatorOffset(tabPositions[1]), color = MaterialTheme.colorScheme.primary) }
                     ) {
-                        Tab(
-                            selected = false, onClick = { navController.popBackStack(); navController.navigate(AppScreens.createAddDiaryRoute(initialDateMillis)) },
-                            text = { Text(stringResource(Res.string.tab_gardening), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Grass, null) }
-                        )
-                        Tab(
-                            selected = true, onClick = {},
-                            text = { Text(stringResource(Res.string.tab_animals), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Pets, null) }
-                        )
+                        Tab(selected = false, onClick = { navController.popBackStack(); navController.navigate(AppScreens.createAddDiaryRoute(initialDateMillis)) }, text = { Text(stringResource(Res.string.tab_gardening), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Grass, null) })
+                        Tab(selected = true, onClick = {}, text = { Text(stringResource(Res.string.tab_animals), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Pets, null) })
                     }
                 }
             }
         }
     ) { padding ->
+        // ── CLAVE: imePadding() ANTES de verticalScroll ──────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(scrollState)
+                .imePadding()                  // ← sube el contenido al aparecer el teclado
+                .verticalScroll(scrollState)   // ← scroll dentro del espacio restante
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            // SELECTOR CERCADO
             OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), shape = RoundedCornerShape(16.dp), colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(stringResource(Res.string.diary_section_location), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
-
                     ExposedDropdownMenuBox(expanded = expandedCercado, onExpandedChange = { expandedCercado = it; keyboardController?.hide() }) {
                         OutlinedTextField(
                             value = selectedCercado?.nombre ?: stringResource(Res.string.cercado_select_placeholder),
@@ -171,10 +165,10 @@ fun AddDiaryEntryAnimalScreen(
                 }
             }
 
+            // SECCIÓN DETALLES
             OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), shape = RoundedCornerShape(16.dp), colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     Text(stringResource(Res.string.diary_section_details), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-
                     HuertaInput(value = title, onValueChange = { title = it }, label = stringResource(Res.string.diary_task_title_hint), icon = Icons.Filled.Title, imeAction = ImeAction.Next)
                     OutlinedTextField(
                         value = description, onValueChange = { description = it }, label = { Text(stringResource(Res.string.diary_notes_hint)) },
@@ -182,7 +176,6 @@ fun AddDiaryEntryAnimalScreen(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                     )
-
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(stringResource(Res.string.diary_type_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -198,6 +191,7 @@ fun AddDiaryEntryAnimalScreen(
                 }
             }
 
+            // FOTO
             Surface(modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(16.dp)).clickable { showPhotoOptions = true; keyboardController?.hide() }, color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), border = BorderStroke(1.dp, if (diaryPhotoBytes != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
                 Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(if (diaryPhotoBytes != null) Icons.Outlined.Image else Icons.Outlined.CameraAlt, null, tint = if (diaryPhotoBytes != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(32.dp))
@@ -206,6 +200,7 @@ fun AddDiaryEntryAnimalScreen(
                 }
             }
 
+            // BOTÓN GUARDAR
             Button(
                 onClick = {
                     if (title.isNotBlank() && selectedCercado != null) {
@@ -220,27 +215,25 @@ fun AddDiaryEntryAnimalScreen(
                 enabled = title.isNotBlank() && selectedCercado != null,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(stringResource(if (isEditMode) Res.string.btn_update else Res.string.animal_diary_register_btn), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
+            ) { Text(stringResource(if (isEditMode) Res.string.btn_update else Res.string.animal_diary_register_btn), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
 
             Spacer(Modifier.height(20.dp))
         }
     }
 
+    // DIÁLOGOS
     if (showPhotoOptions) {
         AlertDialog(
             onDismissRequest = { showPhotoOptions = false }, icon = { Icon(Icons.Outlined.CameraAlt, null, tint = MaterialTheme.colorScheme.primary) }, title = { Text(stringResource(Res.string.diary_dialog_photo_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(onClick = { val permission = Manifest.permission.CAMERA; if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) launcher.launchCamera() else cameraPermissionLauncher.launch(permission); showPhotoOptions = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Outlined.CameraAlt, null); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.diary_btn_take_photo)) }
+                    Button(onClick = { val p = Manifest.permission.CAMERA; if (ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED) launcher.launchCamera() else cameraPermissionLauncher.launch(p); showPhotoOptions = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Outlined.CameraAlt, null); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.diary_btn_take_photo)) }
                     OutlinedButton(onClick = { launcher.launchGallery(); showPhotoOptions = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) { Icon(Icons.Outlined.Image, null, tint = MaterialTheme.colorScheme.onSurface); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.diary_btn_gallery), color = MaterialTheme.colorScheme.onSurface) }
                 }
             },
             confirmButton = { TextButton(onClick = { showPhotoOptions = false }) { Text(stringResource(Res.string.btn_cancel)) } }, containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
-
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { }, title = { Text(stringResource(Res.string.dialog_success_title), fontWeight = FontWeight.Bold) }, text = { Text(stringResource(Res.string.animal_diary_success_msg)) },
@@ -248,7 +241,6 @@ fun AddDiaryEntryAnimalScreen(
             containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
-
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds())
         DatePickerDialog(
@@ -256,17 +248,5 @@ fun AddDiaryEntryAnimalScreen(
             confirmButton = { TextButton(onClick = { datePickerState.selectedDateMillis?.let { millis -> selectedDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date }; showDatePicker = false }) { Text(stringResource(Res.string.dialog_btn_ok)) } },
             colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(24.dp)
         ) { DatePicker(state = datePickerState) }
-    }
-}
-
-@Composable
-private fun SelectorRowAnimal(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.width(16.dp))
-            Column { Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant); Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface) }
-        }
-        Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.outlineVariant)
     }
 }

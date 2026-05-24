@@ -115,7 +115,7 @@ fun AddDiaryEntryScreen(
             entrada?.let { ent ->
                 title = ent.tipoAccion
                 description = ent.descripcion
-                selectedType = if(taskTypes.contains(ent.tipoAccion)) ent.tipoAccion else taskTypes.last()
+                selectedType = if (taskTypes.contains(ent.tipoAccion)) ent.tipoAccion else taskTypes.last()
                 diaryPhotoBytes = ent.foto
                 val bancal = viewModel.getBancalById(ent.bancalId)
                 bancal?.let { b ->
@@ -136,7 +136,11 @@ fun AddDiaryEntryScreen(
                 TopAppBar(
                     title = { Text(stringResource(if (isEditMode) Res.string.diary_edit_entry_title else Res.string.diary_new_entry_title), fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Filled.ArrowBack, null) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = MaterialTheme.colorScheme.background
+                    ),
+                    windowInsets = WindowInsets(0, 0, 0, 0)
                 )
                 if (!isEditMode) {
                     TabRow(
@@ -145,27 +149,29 @@ fun AddDiaryEntryScreen(
                         contentColor = MaterialTheme.colorScheme.primary,
                         indicator = { tabPositions -> SecondaryIndicator(Modifier.tabIndicatorOffset(tabPositions[0]), color = MaterialTheme.colorScheme.primary) }
                     ) {
+                        Tab(selected = true, onClick = {}, text = { Text(stringResource(Res.string.tab_gardening), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Grass, null) })
                         Tab(
-                            selected = true, onClick = {},
-                            text = { Text(stringResource(Res.string.tab_gardening), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Grass, null) }
-                        )
-                        Tab(
-                            selected = false, onClick = { navController.popBackStack(); navController.navigate(AppScreens.createAddAnimalDiaryRoute(initialDateMillis)) },
-                            text = { Text(stringResource(Res.string.tab_animals), fontWeight = FontWeight.Bold) }, icon = { Icon(Icons.Filled.Pets, null) }
+                            selected = false,
+                            onClick = { navController.popBackStack(); navController.navigate(AppScreens.createAddAnimalDiaryRoute(initialDateMillis)) },
+                            text = { Text(stringResource(Res.string.tab_animals), fontWeight = FontWeight.Bold) },
+                            icon = { Icon(Icons.Filled.Pets, null) }
                         )
                     }
                 }
             }
         }
     ) { padding ->
+        // ── CLAVE: imePadding() ANTES de verticalScroll ──────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(scrollState)
+                .imePadding()                  // ← sube el contenido al aparecer el teclado
+                .verticalScroll(scrollState)   // ← scroll dentro del espacio restante
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            // SECCIÓN UBICACIÓN
             OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), shape = RoundedCornerShape(16.dp), colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(stringResource(Res.string.diary_section_location), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
@@ -182,6 +188,7 @@ fun AddDiaryEntryScreen(
                 }
             }
 
+            // SELECCIÓN DE BANCALES
             if (selectedJardinera != null) {
                 OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)), shape = RoundedCornerShape(16.dp), colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -193,7 +200,10 @@ fun AddDiaryEntryScreen(
                             items(bancalesDisponibles) { bancal ->
                                 val isSelected = selectedBancalIds.contains(bancal.id)
                                 Box(
-                                    modifier = Modifier.aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)).border(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).clickable { if (isSelected) selectedBancalIds.remove(bancal.id) else selectedBancalIds.add(bancal.id); keyboardController?.hide() },
+                                    modifier = Modifier.aspectRatio(1f).clip(RoundedCornerShape(12.dp))
+                                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                        .border(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                                        .clickable { if (isSelected) selectedBancalIds.remove(bancal.id) else selectedBancalIds.add(bancal.id); keyboardController?.hide() },
                                     contentAlignment = Alignment.Center
                                 ) { Text(text = bancal.nombreCultivo?.take(2) ?: "${bancal.fila + 1}-${bancal.columna + 1}", color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                             }
@@ -202,17 +212,16 @@ fun AddDiaryEntryScreen(
                 }
             }
 
+            // SECCIÓN DETALLES
             OutlinedCard(border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), shape = RoundedCornerShape(16.dp), colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     Text(stringResource(Res.string.diary_section_details), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-
                     HuertaInput(value = title, onValueChange = { title = it }, label = stringResource(Res.string.diary_task_title_hint), icon = Icons.Filled.Title, imeAction = ImeAction.Next)
                     OutlinedTextField(
                         value = description, onValueChange = { description = it }, label = { Text(stringResource(Res.string.diary_notes_hint)) },
                         modifier = Modifier.fillMaxWidth(), leadingIcon = { Icon(Icons.Filled.Description, null) }, shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                     )
-
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(stringResource(Res.string.diary_type_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -225,7 +234,6 @@ fun AddDiaryEntryScreen(
                             }
                         }
                     }
-
                     if (selectedType == irrigationTypeStr) {
                         Column(modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f), RoundedCornerShape(12.dp)).padding(16.dp)) {
                             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
@@ -239,6 +247,7 @@ fun AddDiaryEntryScreen(
                 }
             }
 
+            // FOTO
             Surface(modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(16.dp)).clickable { showPhotoOptions = true; keyboardController?.hide() }, color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), border = BorderStroke(1.dp, if (diaryPhotoBytes != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
                 Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(if (diaryPhotoBytes != null) Icons.Outlined.Image else Icons.Outlined.CameraAlt, null, tint = if (diaryPhotoBytes != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(32.dp))
@@ -247,6 +256,7 @@ fun AddDiaryEntryScreen(
                 }
             }
 
+            // BOTÓN GUARDAR
             Button(
                 onClick = {
                     if (title.isNotBlank() && selectedBancalIds.isNotEmpty()) {
@@ -258,26 +268,27 @@ fun AddDiaryEntryScreen(
                         showSuccessDialog = true
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp), enabled = selectedBancalIds.isNotEmpty() && title.isNotBlank(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(16.dp)
+                modifier = Modifier.fillMaxWidth().height(56.dp), enabled = selectedBancalIds.isNotEmpty() && title.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(16.dp)
             ) { Text(if (isEditMode) stringResource(Res.string.btn_update) else stringResource(Res.string.diary_btn_register, selectedBancalIds.size), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
 
             Spacer(Modifier.height(20.dp))
         }
     }
 
+    // DIÁLOGOS
     if (showPhotoOptions) {
         AlertDialog(
             onDismissRequest = { showPhotoOptions = false }, icon = { Icon(Icons.Outlined.CameraAlt, null, tint = MaterialTheme.colorScheme.primary) }, title = { Text(stringResource(Res.string.diary_dialog_photo_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(onClick = { val permission = Manifest.permission.CAMERA; if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) launcher.launchCamera() else cameraPermissionLauncher.launch(permission); showPhotoOptions = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Outlined.CameraAlt, null); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.diary_btn_take_photo)) }
+                    Button(onClick = { val p = Manifest.permission.CAMERA; if (ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED) launcher.launchCamera() else cameraPermissionLauncher.launch(p); showPhotoOptions = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Outlined.CameraAlt, null); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.diary_btn_take_photo)) }
                     OutlinedButton(onClick = { launcher.launchGallery(); showPhotoOptions = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) { Icon(Icons.Outlined.Image, null, tint = MaterialTheme.colorScheme.onSurface); Spacer(Modifier.width(8.dp)); Text(stringResource(Res.string.diary_btn_gallery), color = MaterialTheme.colorScheme.onSurface) }
                 }
             },
             confirmButton = { TextButton(onClick = { showPhotoOptions = false }) { Text(stringResource(Res.string.btn_cancel)) } }, containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
-
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { }, title = { Text(stringResource(Res.string.dialog_success_title), fontWeight = FontWeight.Bold) }, text = { Text(successMsg) },
@@ -285,7 +296,6 @@ fun AddDiaryEntryScreen(
             containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
-
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds())
         DatePickerDialog(

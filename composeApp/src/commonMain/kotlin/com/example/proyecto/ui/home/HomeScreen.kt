@@ -192,14 +192,14 @@ fun HomeScreen(
                     val epoch = Clock.System.now().toEpochMilliseconds()
                     navController.navigate("add_diary_entry/$epoch")
                 }
-                QuickActionCard(
+                /*QuickActionCard(
                     title = "Chat IA",
                     icon = Icons.Rounded.SmartToy,
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
                 ) {
                     navController.navigate("chat")
-                }
+                }*/
             }
 
             Spacer(Modifier.height(40.dp))
