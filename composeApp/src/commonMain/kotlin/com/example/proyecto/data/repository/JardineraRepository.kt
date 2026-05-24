@@ -511,33 +511,37 @@ class JardineraRepository(
         }
     }
 
-    suspend fun plantarEnBancal(bancalId: Long, localId: Int) {
-        val productoLocal = productoDao.getProductoByPerenualId(localId) ?: return
-        if (productoLocal.stock <= 0) return
-        val ficha = catalogoMaestro.find { it.id == localId } ?: return
+    suspend fun plantarEnBancal(bancalId: Long, productoId: Long) {
+        // Busca por el ID real del producto en la BD
+        val productoLocal = productoDao.getProductoById(productoId) ?: return
+
+        // Intenta obtener la ficha del catálogo si tiene perenualId (puede ser null si fue añadido manualmente)
+        val ficha = productoLocal.perenualId?.let { pid -> catalogoMaestro.find { it.id == pid } }
 
         bancalDao.getBancalById(bancalId)?.let { bancal ->
             val bancalPlantado = bancal.copy(
-                perenualId = localId,
-                nombreCultivo = ficha.nombre,
-                imagenUrl = ficha.imagenUrl,
-                frecuenciaRiegoDias = ficha.riegoDias,
-                necesidadSol = ficha.sol,
-                fechaSiembra = System.currentTimeMillis()
+                perenualId    = productoLocal.perenualId,
+                nombreCultivo = productoLocal.nombre,
+                imagenUrl     = ficha?.imagenUrl ?: productoLocal.imagenUrl,
+                frecuenciaRiegoDias = ficha?.riegoDias,
+                necesidadSol  = ficha?.sol,
+                fechaSiembra  = System.currentTimeMillis()
             )
             if (bancalDao.insertBancal(bancalPlantado) == -1L) {
                 bancalDao.updateBancal(bancalPlantado)
             }
             uploadBancalChange(bancalPlantado)
 
+            val consejo = ficha?.consejo ?: "Riega con regularidad y observa el crecimiento."
             insertarEntradaDiario(EntradaDiarioEntity(
-                bancalId = bancalId,
-                tipoAccion = "SIEMBRA",
-                descripcion = "Siembra: ${ficha.nombre}.\n💡 Consejo: ${ficha.consejo}",
-                fecha = System.currentTimeMillis()
+                bancalId     = bancalId,
+                tipoAccion   = "SIEMBRA",
+                descripcion  = "Siembra: ${productoLocal.nombre}.\n💡 Consejo: $consejo",
+                fecha        = System.currentTimeMillis()
             ))
         }
 
+        // Descuenta stock y borra el producto si llega a 0
         val nuevoStock = productoLocal.stock - 1.0
         if (nuevoStock <= 0) {
             productoDao.deleteProductoById(productoLocal.id)

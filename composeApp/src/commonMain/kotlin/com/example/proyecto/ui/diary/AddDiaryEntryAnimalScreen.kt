@@ -207,7 +207,7 @@ fun AddDiaryEntryAnimalScreen(
                         val finalDesc = if (description.isNotBlank()) "$title | $description" else title
                         val dateMillis = selectedDate.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
                         val idToUpdate = taskId?.toLongOrNull() ?: 0L
-                        viewModel.guardarEntradaDiarioAnimal(id = idToUpdate, cercadoId = selectedCercado!!.id, tipo = selectedType, desc = finalDesc, fecha = dateMillis, foto = null, cantidad = 0f)
+                        viewModel.guardarEntradaDiarioAnimal(id = idToUpdate, cercadoId = selectedCercado!!.id, tipo = selectedType, desc = finalDesc, fecha = dateMillis, foto = diaryPhotoBytes, cantidad = 0f)
                         navController.popBackStack()
                     }
                 },

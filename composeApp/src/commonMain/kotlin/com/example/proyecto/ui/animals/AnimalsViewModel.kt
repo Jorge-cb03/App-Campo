@@ -145,8 +145,11 @@ class AnimalsViewModel(
     fun registrarPuestaGrupo(cercado: CercadoEntity, tipo: String, cantidad: Double) {
         viewModelScope.launch {
             val (nombreRes, urlFoto) = when (tipo.uppercase().trim()) {
-                "GALLINA" -> Res.string.product_egg_gallina to "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"
-                "OCA"     -> Res.string.product_egg_oca to "https://plus.unsplash.com/premium_photo-1675731320300-34907106d64d?q=80&w=400"
+                "GALLINA" -> Res.string.product_egg_gallina to "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Eggs_x6.jpg/320px-Eggs_x6.jpg"
+                "OCA"     -> Res.string.product_egg_oca     to "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Goose_egg_2.jpg/320px-Goose_egg_2.jpg"
+                "PERDIZ"  -> Res.string.product_egg_perdiz  to "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Partridge_eggs.jpg/320px-Partridge_eggs.jpg"
+                "CODORNIZ"-> Res.string.product_egg_codorniz to "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Quail_eggs.jpg/320px-Quail_eggs.jpg"
+                "PATO"    -> Res.string.product_egg_pato    to "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Duck_eggs.jpg/320px-Duck_eggs.jpg"
                 else      -> Res.string.product_egg_gallina to ""
             }
             val nombreTraducido = getString(nombreRes)

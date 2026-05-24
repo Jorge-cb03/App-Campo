@@ -255,7 +255,7 @@ class GardenViewModel(
         }
     }
 
-    private val GEMINI_API_KEY = "AIzaSyAU8lChfk_CComnbp5TLM3FXEzjMonC5O8"
+    private val GEMINI_API_KEY get() = com.example.proyecto.GEMINI_API_KEY
 
     fun sendMessageToGemini(prompt: String) {
         _isGeminiLoading.value = true
@@ -396,8 +396,7 @@ class GardenViewModel(
     fun toggleBancal(id: Long, f: Boolean) = viewModelScope.launch { repository.setEstadoFuncionalBancal(id, f) }
     fun plantar(bancalId: Long, productoId: Long) {
         viewModelScope.launch {
-            // Usamos el ID del producto que el usuario eligió de su inventario
-            repository.plantarEnBancal(bancalId, productoId.toInt())
+            repository.plantarEnBancal(bancalId, productoId) // Long directo, sin toInt()
         }
     }
     fun cosechar(bId: Long) = viewModelScope.launch { repository.cosecharBancal(bId) }
