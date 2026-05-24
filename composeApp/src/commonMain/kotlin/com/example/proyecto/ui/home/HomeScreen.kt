@@ -200,9 +200,12 @@ fun HomeScreen(
                                 .width(160.dp)
                                 .clickable {
                                     navController.navigate("garden/${jardinera.id}") {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                            inclusive = false
+                                        }
                                         launchSingleTop = true
-                                        restoreState = true
+                                        // Sin restoreState: queremos la jardinera exacta, no el estado guardado
                                     }
                                 },
                             shape = RoundedCornerShape(16.dp),

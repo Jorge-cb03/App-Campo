@@ -16,14 +16,14 @@
     <string name="dialog_warning_title">Are you sure?</string>
     <string name="dialog_btn_ok">OK</string>
 
-    <string name="login_title">Huerta</string>
+    <string name="login_title">Garden</string>
     <string name="login_subtitle">Professional Crop Management</string>
     <string name="login_user_hint">Username or Email</string>
     <string name="login_pass_hint">Password</string>
     <string name="login_btn">Log In</string>
     <string name="login_forgot">Forgot your password?</string>
     <string name="login_google">Continue with Google</string>
-    <string name="login_no_account">No account? Sign up</string>
+    <string name="login_no_account">Don\'t have an account? Sign up</string>
     <string name="login_welcome">Welcome</string>
     <string name="login_guest">Continue as guest</string>
 
@@ -37,19 +37,19 @@
     <string name="weather_humidity">Humidity</string>
     <string name="weather_temp">Temp</string>
     <string name="weather_uv">UV</string>
-    <string name="weather_title_now">Weather now</string>
+    <string name="weather_title_now">Current Weather</string>
     <string name="weather_sunny">Sunny</string>
     <string name="weather_cloudy">Cloudy</string>
-    <string name="weather_rainy">Rain</string>
+    <string name="weather_rainy">Rainy</string>
     <string name="weather_night">Clear</string>
     <string name="weather_loading">Loading...</string>
 
     <string name="alerts_screen_title">Upcoming Alerts</string>
     <string name="add_alert_btn">Add Alert</string>
     <string name="alert_dialog_title">Schedule Alert</string>
-    <string name="alert_name_hint">Name (e.g. Irrigation)</string>
+    <string name="alert_name_hint">Name (e.g., Watering)</string>
     <string name="alert_description_hint">Detailed description</string>
-    <string name="alert_type_hint">Type (e.g. Fertilizer)</string>
+    <string name="alert_type_hint">Type (e.g., Fertilizer)</string>
     <string name="alert_date_label">Alert date</string>
     <string name="alert_notification_time">Notification time:</string>
     <string name="alert_save">Save Alert</string>
@@ -57,10 +57,10 @@
     <string name="alert_menu_edit">Edit alert</string>
     <string name="alert_menu_delete">Delete alert</string>
     <string name="alert_notification_prefix">Alert:</string>
-    <string name="alert_irrigation_title">Irrigation Needed</string>
+    <string name="alert_irrigation_title">Watering Required</string>
     <string name="alert_irrigation_desc">Tomato Sector - Low humidity</string>
     <string name="alert_review_title">Monthly Review</string>
-    <string name="alert_review_desc">Whole garden - Tomorrow</string>
+    <string name="alert_review_desc">Entire garden - Tomorrow</string>
     <string name="alert_date_select">Select date</string>
     <string name="dialog_success_alert_saved">Alert saved successfully.</string>
     <string name="dialog_success_alert_deleted">Alert deleted successfully.</string>
@@ -74,27 +74,27 @@
     <string name="garden_show">Show</string>
     <string name="garden_name_label">Name</string>
     <string name="garden_plant_title">Choose what to plant</string>
-    <string name="garden_no_seeds">You have no seeds in inventory.</string>
+    <string name="garden_no_seeds">You have no seeds in your inventory.</string>
     <string name="garden_add_seeds_hint">Add them in the Products section.</string>
-    <string name="garden_slot_empty_title">Empty Slot</string>
-    <string name="garden_slot_detail_title">Slot Detail</string>
+    <string name="garden_slot_empty_title">Empty Bed</string>
+    <string name="garden_slot_detail_title">Bed Details</string>
     <string name="garden_harvest">Harvest</string>
     <string name="garden_delete_plant">Remove Plant</string>
     <string name="garden_no_crop">No Crop</string>
-    <string name="garden_available_msg">This slot is available for planting.</string>
+    <string name="garden_available_msg">This bed is available for planting.</string>
     <string name="garden_guide_title">Growing Guide</string>
     <string name="garden_friends">Companion Plants:</string>
-    <string name="garden_enemies">Avoid planting near:</string>
+    <string name="garden_enemies">Avoid planting nearby:</string>
     <string name="garden_pro_tip">Pro Tip:</string>
     <string name="garden_quick_actions">Quick Actions</string>
     <string name="garden_history">History</string>
-    <string name="garden_no_history">No records.</string>
-    <string name="garden_harvest_dialog_title">Register Harvest</string>
+    <string name="garden_no_history">No records found.</string>
+    <string name="garden_harvest_dialog_title">Log Harvest</string>
     <string name="garden_harvest_dialog_msg">Congratulations! How much did you harvest?</string>
     <string name="garden_harvest_amount_hint">Amount (units or kg)</string>
     <string name="garden_harvest_note">It will be added to your product inventory.</string>
-    <string name="garden_delete_dialog_title">Remove plant?</string>
-    <string name="garden_delete_dialog_msg">Current crop data will be lost and production will not be recorded. Are you sure?</string>
+    <string name="garden_delete_dialog_title">Uproot plant?</string>
+    <string name="garden_delete_dialog_msg">Current crop data will be lost and no production will be logged. Are you sure?</string>
     <string name="garden_water_dialog_title">Log Watering</string>
     <string name="garden_treat_dialog_title">Apply Treatment</string>
     <string name="garden_product_label">Product:</string>
@@ -108,7 +108,7 @@
     <string name="garden_menu_remove">Uproot</string>
     <string name="garden_days_planted">days planted</string>
     <string name="garden_add_row">Add Row</string>
-    <string name="garden_menu_delete_content">Remove Plant</string>
+    <string name="garden_menu_delete_content">Uproot Plant</string>
     <string name="garden_menu_hide_slot">Remove Slot (Layout)</string>
     <string name="garden_restore_slot">Restore Slot</string>
     <string name="garden_new">Add Planter</string>
@@ -121,9 +121,9 @@
     <string name="dialog_success_garden_created">Planter created successfully.</string>
     <string name="dialog_success_garden_deleted">Planter deleted.</string>
     <string name="dialog_success_garden">Planter created successfully</string>
-    <string name="dialog_success_task_registered">Task registered successfully.</string>
-    <string name="dialog_success_harvest">Harvest registered and stock updated.</string>
-    <string name="dialog_success_plant_removed">Plant removed successfully.</string>
+    <string name="dialog_success_task_registered">Task logged successfully.</string>
+    <string name="dialog_success_harvest">Harvest logged and stock updated.</string>
+    <string name="dialog_success_plant_removed">Plant uprooted successfully.</string>
     <string name="dialog_garden_add_title">New Planter</string>
     <string name="dialog_garden_add_hint">Planter name</string>
     <string name="dialog_garden_delete_title">Delete Planter?</string>
@@ -150,9 +150,9 @@
     <string name="product_save_changes">Save Changes</string>
     <string name="product_save_sheet">Save Sheet</string>
     <string name="product_catalog_title">Crop Catalog</string>
-    <string name="product_filter_hint">Filter (e.g. Tomato)</string>
+    <string name="product_filter_hint">Filter (e.g., Tomato)</string>
     <string name="product_delete_confirm">Delete product?</string>
-    <string name="product_delete_msg">Inventory record will be permanently lost.</string>
+    <string name="product_delete_msg">The inventory record will be permanently lost.</string>
     <string name="products_add_btn">Add to inventory</string>
     <string name="product_days_planted">days planted</string>
     <string name="add_prod_title">New Product</string>
@@ -165,17 +165,17 @@
     <string name="dialog_success_product_deleted">Product deleted from inventory.</string>
 
     <string name="diary_title">Crop Diary</string>
-    <string name="diary_today_tasks">Today\'s tasks</string>
+    <string name="diary_today_tasks">Tasks of the day</string>
     <string name="diary_add_btn">Add</string>
-    <string name="diary_no_tasks">No tasks recorded this day.</string>
+    <string name="diary_no_tasks">No tasks logged for this day.</string>
     <string name="diary_status_done">Done</string>
     <string name="diary_new_entry_title">New Task</string>
     <string name="diary_edit_entry_title">Edit Task</string>
     <string name="diary_section_location">Location and Date</string>
     <string name="diary_select_garden">Select Planter</string>
-    <string name="diary_tap_select">Tap to choose</string>
+    <string name="diary_tap_select">Tap to select</string>
     <string name="diary_date_activity">Activity date</string>
-    <string name="diary_select_slots">Select slots</string>
+    <string name="diary_select_slots">Select beds</string>
     <string name="diary_deselect">Deselect</string>
     <string name="diary_all">All</string>
     <string name="diary_section_details">Details</string>
@@ -187,8 +187,8 @@
     <string name="diary_photo_change">Photo added (Tap to change)</string>
     <string name="diary_camera">Camera</string>
     <string name="diary_add_photo">Add Photo</string>
-    <string name="diary_btn_register">Register in %1$d slots</string>
-    <string name="diary_dialog_success">Task saved successfully in diary.</string>
+    <string name="diary_btn_register">Log in %1$d beds</string>
+    <string name="diary_dialog_success">Task successfully saved to the diary.</string>
     <string name="diary_dialog_photo_title">Add image</string>
     <string name="diary_btn_take_photo">Take photo</string>
     <string name="diary_btn_gallery">Open gallery</string>
@@ -196,15 +196,15 @@
     <string name="diary_detail_date">Date</string>
     <string name="diary_detail_location">Location</string>
     <string name="diary_detail_notes_title">Farmer\'s Notes</string>
-    <string name="diary_detail_no_notes">No additional notes added for this task.</string>
-    <string name="diary_delete_confirm_msg">Are you sure? This action will permanently delete the task from history.</string>
+    <string name="diary_detail_no_notes">No additional notes have been added for this task.</string>
+    <string name="diary_delete_confirm_msg">Are you sure? This action will permanently delete the task from the history.</string>
     <string name="diary_edit_record">Edit Record</string>
     <string name="diary_delete_record">Delete Record</string>
-    <string name="tasks_for">Tasks performed on</string>
+    <string name="tasks_for">Tasks completed on</string>
     <string name="of">of</string>
     <string name="no_entries">No entries for this day.</string>
     <string name="diary_irrigation_title">Watering Today</string>
-    <string name="diary_irrigation_desc">Automatic irrigation activated.</string>
+    <string name="diary_irrigation_desc">Automatic watering activated.</string>
     <string name="diary_review_title">Review</string>
     <string name="diary_review_desc">General pest review.</string>
     <string name="add_diary_title">New Task</string>
@@ -212,11 +212,11 @@
     <string name="add_diary_desc">Brief description</string>
     <string name="add_diary_btn">Save to Diary</string>
     <string name="diary_date_label">Task date</string>
-    <string name="diary_slider_label">Water Amount (Liters)</string>
+    <string name="diary_slider_label">Watering Amount (Liters)</string>
     <string name="diary_switch_urgent">Mark as Important</string>
     <string name="diary_type">Task type</string>
     <string name="diary_photo_placeholder">No image selected</string>
-    <string name="dialog_success_diary_saved">Task saved in diary.</string>
+    <string name="dialog_success_diary_saved">Task saved to diary.</string>
     <string name="dialog_success_diary_deleted">Task deleted successfully.</string>
     <string name="delete_confirm_diary">Do you want to delete </string>
 
@@ -232,7 +232,7 @@
     <string name="pref_light_mode">Light mode</string>
     <string name="profile_section_personal">PERSONAL DATA</string>
     <string name="profile_name_label">FULL NAME</string>
-    <string name="profile_email_label">EMAIL</string>
+    <string name="profile_email_label">EMAIL ADDRESS</string>
     <string name="profile_section_prefs">PREFERENCES</string>
     <string name="pref_color_D">Dark mode</string>
     <string name="pref_color_C">Light mode</string>
@@ -251,7 +251,7 @@
     <string name="menu_delete">Delete</string>
     <string name="menu_add_garden">Add Planter</string>
     <string name="menu_delete_garden">Delete Planter</string>
-    <string name="menu_garden">My Garden</string>
+    <string name="menu_garden">My garden</string>
     <string name="menu_products">Products</string>
     <string name="menu_home">Home</string>
     <string name="menu_diary">Diary</string>
@@ -274,6 +274,7 @@
 
     <string name="about_title">About</string>
     <string name="about_app_name">AgroFather</string>
+    <string name="about_version">Version 1.0.0</string>
     <string name="about_description">Comprehensive platform for the digital management of family farms and crop traceability.</string>
     <string name="about_team_title">Developed by</string>
     <string name="about_team_1">Jorge Camacho</string>
@@ -281,13 +282,13 @@
 
     <string name="tip_title">Expert Tip:</string>
     <string name="tip_1">Clean your tools after each use to prevent the spread of fungi.</string>
-    <string name="tip_2">Store seeds in a cool, dry place so they don\'t lose their germination capacity.</string>
-    <string name="tip_3">Periodically check the undersides of leaves; that is where pests usually hide.</string>
+    <string name="tip_2">Store seeds in a cool, dry place so they don\'t lose their ability to germinate.</string>
+    <string name="tip_3">Periodically check the underside of the leaves; that\'s where pests usually hide.</string>
 
     <string name="plant_info_title">Technical Sheet</string>
     <string name="plant_info_fruit">Fruit produced:</string>
     <string name="plant_info_companions">Companion plants:</string>
-    <string name="plant_info_antagonists">Avoid placing with:</string>
+    <string name="plant_info_antagonists">Avoid planting with:</string>
     <string name="quick_actions_title">Quick Actions</string>
     <string name="history_care_title">Care History</string>
 
@@ -297,12 +298,12 @@
     <string name="action_fertilize">Fertilize</string>
     <string name="action_treat">Treatment</string>
 
-    <string name="ai_chat_title">Growing Assistant</string>
-    <string name="ai_chat_helper">Ask AI</string>
+    <string name="ai_chat_title">Crop Assistant</string>
+    <string name="ai_chat_helper">Ask the AI</string>
     <string name="ai_chat_window_title">AI Assistant</string>
     <string name="ai_chat_placeholder">Ask about your garden...</string>
     <string name="ai_chat_send">Send</string>
-    <string name="ai_chat_welcome">Hello! I\'m your growing assistant. Ask me about pests, watering, or what to plant.</string>
+    <string name="ai_chat_welcome">Hello! I am your crop assistant. Ask me about pests, watering, or what to plant.</string>
 
     <string name="dialog_confirm">Confirm</string>
     <string name="dialog_cancel">Cancel</string>
@@ -312,8 +313,8 @@
     <string name="section_basic_info">Basic Information</string>
     <string name="section_where_when">Where and When?</string>
     <string name="section_details">Task Details</string>
-    <string name="photo_attached_label">Attached Photo</string>
-    <string name="section_tasks">Today\'s tasks</string>
+    <string name="photo_attached_label">Photo Attached</string>
+    <string name="section_tasks">Tasks of the day</string>
 
     <string name="month_1">January</string>
     <string name="month_2">February</string>
@@ -330,79 +331,160 @@
 
     <string name="time_hour">Hour</string>
     <string name="time_minute">Minutes</string>
-    <string name="login_welcome_title">Hello again!</string>
-    <string name="login_welcome_subtitle">Login to manage your garden</string>
-    <string name="login_email_hint">Email</string>
-    <string name="login_password_hint">Password</string>
-    <string name="login_btn_enter">Enter</string>
-    <string name="login_btn_guest">Login as guest</string>
-    <string name="login_or">or</string>
-    <string name="login_btn_register">Register</string>
+    <string name="garden_slot_options">Options</string>
 
-    <string name="menu_animals">Animals</string>
-    <string name="animal_type_hen">Chicken</string>
+    <string name="login_welcome_title">Welcome back!</string>
+    <string name="login_welcome_subtitle">Log in to manage your garden</string>
+    <string name="login_email_hint">Email address</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_btn_enter">Log In</string>
+    <string name="login_btn_guest">Enter as guest</string>
+    <string name="login_or">or</string>
+    <string name="login_btn_register">Sign Up</string>
+
+    <string name="animal_type_hen">Hen</string>
     <string name="animal_type_dog">Dog</string>
     <string name="animal_type_goose">Goose</string>
     <string name="animal_type_partridge">Partridge</string>
-    <string name="animal_type_other">Other</string>
-    <string name="type_animal_feed">Animal feed</string>
+    <string name="type_animal_feed">Feed</string>
+
     <string name="action_collect_eggs">Collect eggs</string>
     <string name="product_eggs_name">Eggs</string>
-    <string name="dialog_success_eggs_collected">Eggs saved in inventory</string>
-    <string name="action_collect_production">Collect %1$s production</string>
-    <string name="action_feed_animal">Feed %1$s</string>
-    <string name="dialog_feed_title">Feed Animals</string>
-    <string name="dialog_feed_hint">Sacks to add (ex: 1 or 1.5)</string>
-    <string name="btn_feed">Feed</string>
+    <string name="dialog_success_eggs_collected">Eggs saved to inventory</string>
+    <string name="add_animal_success">Animal saved successfully</string>
 
+    <string name="menu_animals">Animals</string>
+    <string name="animal_type_gallina">Hen</string>
+    <string name="animal_type_oca">Goose</string>
+    <string name="animal_type_perdiz">Partridge</string>
+    <string name="animal_type_codorniz">Quail</string>
+    <string name="animal_type_pato">Duck</string>
+    <string name="animal_type_other">Other</string>
+
+    <string name="product_pienso">Feed</string>
     <string name="product_egg_gallina">Chicken Egg</string>
     <string name="product_egg_oca">Goose Egg</string>
-    <string name="product_pienso">Feed</string>
+    <string name="product_egg_perdiz">Partridge Egg</string>
+    <string name="product_egg_codorniz">Quail Egg</string>
+    <string name="product_egg_pato">Duck Egg</string>
+
+    <string name="action_collect_production">Collect production from %1$s</string>
+    <string name="action_feed_animal">Feed %1$s</string>
+    <string name="dialog_feed_title">Feed Animals</string>
+    <string name="dialog_feed_hint">Sacks to feed (e.g., 1 or 1.5)</string>
+    <string name="btn_feed">Feed</string>
 
     <string name="diary_collect_msg">Collected %1$s %2$s.</string>
-    <string name="diary_feed_msg">Added %1$s sacks of feed to %2$s.</string>
-    <string name="diary_no_pienso_warning">Tried to feed %1$s but NO FEED in inventory.</string>
+    <string name="diary_feed_msg">Fed %1$s sacks of feed to the %2$s.</string>
+    <string name="diary_no_pienso_warning">Attempted to feed %1$s but there is NO FEED in the inventory.</string>
+
+    <string name="add_animal_title">New Animal</string>
+    <string name="add_animal_name_hint">Name (e.g., Bibi)</string>
+    <string name="add_animal_type_hint">Animal type</string>
+    <string name="add_animal_is_layer">Is it a layer? (Produces eggs)</string>
+    <string name="add_animal_btn_save">Save Animal</string>
     <string name="farm_management_title">Farm Management</string>
-    <string name="farm_empty_msg">No fences or animals yet. Add the first one!</string>
-    <string name="cercado_format">Fence %1$d: %2$s</string>
-    <string name="cercado_dropdown_format">Fence %1$d - %2$s</string>
+    <string name="farm_empty_msg">There are no enclosures or animals. Add the first one!</string>
+    <string name="cercado_format">Enclosure %1$d: %2$s</string>
+    <string name="cercado_dropdown_format">Enclosure %1$d - %2$s</string>
     <string name="animals_count">Animals: %1$d</string>
 
-    <string name="cercado_label">Fence</string>
-    <string name="cercado_select_placeholder">Select fence</string>
-    <string name="add_cercado_title">New Fence</string>
+    <string name="cercado_label">Enclosure</string>
+    <string name="cercado_select_placeholder">Select enclosure</string>
+    <string name="add_cercado_title">New Enclosure</string>
     <string name="cercado_num_hint">Number (e.g., 1)</string>
     <string name="animal_name_label">Name</string>
 
-    <string name="action_collect_eggs_from">Collect %1$s eggs</string>
-    <string name="action_feed_cercado">Feed entire Fence</string>
+    <string name="action_collect_eggs_from">Collect eggs from %1$s</string>
+    <string name="action_feed_cercado">Feed entire Enclosure</string>
     <string name="edit_animal_title">Edit Animal</string>
-    <string name="feed_cercado_title">Add Feed to Fence</string>
+    <string name="feed_cercado_title">Feed the Enclosure</string>
     <string name="feed_sacks_hint">Sacks (e.g., 1.5)</string>
     <string name="dialog_collect_eggs_title">Collect Production</string>
-    <string name="dialog_collect_eggs_hint">Amount collected</string>
+    <string name="dialog_collect_eggs_hint">Collected amount</string>
     <string name="cercado_name_hint">Name (e.g., North)</string>
-    <string name="edit_cercado_title">Edit Fence</string>
-    <string name="edit_farm_entry_title">Edit Farm Log</string>
+    <string name="edit_cercado_title">Edit Enclosure</string>
+    <string name="edit_farm_entry_title">Edit Farm Record</string>
 
     <string name="conflict_warning_title">⚠️ Compatibility Conflict</string>
-    <string name="conflict_dog_to_birds">Warning! You are adding a Sheepdog to a fence with birds. Dogs can scare, chase, or attack chickens, geese, ducks, or partridges. Are you sure?</string>
-    <string name="conflict_birds_to_dog">Warning! You are putting birds in a fence where a Sheepdog lives. There is a risk of conflict or attacks. Do you want to continue?</string>
+    <string name="conflict_dog_to_birds">Watch out! You are about to add a Sheepdog to an enclosure with birds. Dogs can scare, chase, or attack hens, geese, ducks, or partridges. Are you sure?</string>
+    <string name="conflict_birds_to_dog">Watch out! You are about to put birds in an enclosure where a Sheepdog lives. There is a risk of conflict or attacks between them. Do you wish to continue?</string>
 
     <string name="confirm_delete_animal_title">Delete Animal?</string>
-    <string name="confirm_delete_animal_msg">Are you sure you want to delete this animal? This action will record a permanent removal in the farm log.</string>
+    <string name="confirm_delete_animal_msg">Are you sure you want to delete this animal? This action will permanently record its removal from the farm log.</string>
 
     <string name="success_title">Operation Successful!</string>
-    <string name="success_animal_added">The animal has been successfully registered and assigned to the fence.</string>
-    <string name="success_cercado_created">The new fence has been successfully created in the database.</string>
-    <string name="success_animal_deleted">The animal has been removed and recorded in the diary.</string>
-    <string name="success_animal_edited">The animal\'s data has been updated successfully.</string>
-    <string name="success_eggs_collected">Production recorded! The eggs have been added to the product inventory.</string>
+    <string name="success_animal_added">The animal has been successfully registered and assigned to the enclosure.</string>
+    <string name="success_cercado_created">The new enclosure has been successfully created in the database.</string>
+    <string name="success_animal_deleted">The animal has been removed and its departure recorded in the log.</string>
+    <string name="success_animal_edited">The animal\'s data has been successfully modified.</string>
+    <string name="success_eggs_collected">Production logged! The eggs have been added to the product inventory.</string>
+    <string name="success_feed_given">Feeding logged! The feed has been deducted from the inventory.</string>
 
-    <string name="success_feed_given">Feeding recorded! The feed has been deducted from the inventory.</string>
-    <string name="about_dev_role">Desarrollador Principal &amp; Creador</string>
-    <string name="about_dev_desc">Apasionado por la tecnología y la agricultura, desarrollando soluciones para digitalizar y mejorar la gestión del campo.</string>
-    <string name="about_github">Ver mi GitHub</string>
-    <string name="about_linkedin">Ver mi LinkedIn</string>
-    <string name="about_back">Cerrar</string>
+    <string name="tab_gardening">Gardening</string>
+    <string name="tab_animals">Animals</string>
+
+    <string name="animal_diary_new_entry_title">New Task</string>
+
+    <string name="animal_diary_type_feeding">Feeding</string>
+    <string name="animal_diary_type_collect">Collect production</string>
+    <string name="animal_diary_type_vet">Veterinary check</string>
+    <string name="animal_diary_type_clean">Cleaning</string>
+    <string name="animal_diary_type_vaccine">Vaccination</string>
+    <string name="animal_diary_type_other">Other</string>
+
+    <string name="animal_diary_feed_sacks">Feed sacks</string>
+    <string name="animal_diary_sacks_unit">sacks</string>
+
+    <string name="animal_diary_collect_amount">Collected amount</string>
+    <string name="animal_diary_collect_unit">units</string>
+
+    <string name="animal_diary_register_btn">Log in enclosure</string>
+    <string name="animal_diary_success_msg">Animal task logged successfully.</string>
+
+    <string name="edit_cercado_menu">Edit enclosure</string>
+    <string name="delete_cercado_menu">Delete enclosure</string>
+
+    <string name="confirm_delete_cercado_title">Delete enclosure</string>
+    <string name="confirm_delete_cercado_msg">This enclosure has %1$d animal(s). Do you want to delete them or move them to another enclosure?</string>
+    <string name="confirm_delete_cercado_empty_msg">Are you sure you want to delete this enclosure? This action cannot be undone.</string>
+
+    <string name="btn_delete_all">Delete all</string>
+    <string name="btn_move_animals">Move animals</string>
+
+    <string name="move_animals_title">Move animals</string>
+    <string name="move_animals_msg">Select the enclosure to move the %1$d animal(s) to before deleting this enclosure.</string>
+    <string name="no_other_cercados">No other enclosures available</string>
+    <string name="btn_move_and_delete">Move and delete</string>
+
+    <string name="success_cercado_edited">The enclosure has been updated successfully.</string>
+    <string name="success_cercado_deleted">The enclosure and its animals have been deleted.</string>
+    <string name="success_animals_moved">The animals have been transferred and the enclosure deleted.</string>
+    <string name="weather_current_title">Current Weather</string>
+    <string name="weather_wind">Wind</string>
+    <string name="weather_wind_normal">Normal</string>
+    <string name="weather_humidity_medium">Medium</string>
+    <string name="weather_uv_index">UV Index</string>
+    <string name="uv_low">Low</string>
+    <string name="uv_moderate">Moderate</string>
+    <string name="uv_high">High</string>
+    <string name="uv_extreme">Extreme</string>
+    <string name="weather_more_on_google">See more on Google →</string>
+    <string name="home_favorite_gardens">Favorite Planters</string>
+    <string name="home_no_favorites">You have no planters marked as favorites.</string>
+    <string name="garden_bancales_count">%1$d Beds</string>
+    <string name="home_add_task">Add Task</string>
+
+    <!-- AnimalDiaryDetailScreen -->
+    <string name="diary_animal_notes_title">Rancher\'s Notes</string>
+    <string name="diary_no_notes_short">No additional notes.</string>
+    <string name="cercado_none">No enclosure</string>
+    <string name="diary_delete_confirm_animal">Are you sure you want to delete this record? This action cannot be undone.</string>
+    <string name="dialog_done_title">Done!</string>
+    <string name="success_animal_diary_deleted">The animal record has been deleted successfully.</string>
+
+    <!-- AnimalGroupDetailScreen + AnimalsScreen -->
+    <string name="cercado_detail_title">Details</string>
+    <string name="cercado_options_menu">Enclosure options</string>
+    <string name="add_animal_fab_desc">Add Animal</string>
 </resources>
