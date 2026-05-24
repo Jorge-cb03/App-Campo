@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +36,6 @@ import com.example.proyecto.domain.model.ProductType
 import com.example.proyecto.ui.HuertaInput
 import com.example.proyecto.ui.garden.GardenViewModel
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.StringResource
 import huertomanager.composeapp.generated.resources.*
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -77,6 +78,8 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
     val unitLabel = if (selectedType == ProductType.FERTILIZER || selectedType == ProductType.CHEMICAL) " (kg/L)" else stringResource(Res.string.product_units)
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { keyboardController?.hide() }) },
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
@@ -86,19 +89,17 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
                 Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(stringResource(Res.string.product_tech_sheet), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
 
                     if (!selectedImageUrl.isNullOrBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            AsyncImage(
-                                model = selectedImageUrl,
-                                contentDescription = null,
-                                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
+                            AsyncImage(model = selectedImageUrl, contentDescription = null, modifier = Modifier.size(70.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
                             Spacer(Modifier.width(12.dp))
                             Column {
                                 Text(stringResource(Res.string.product_linked), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -109,32 +110,21 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
 
                     Box {
                         OutlinedTextField(
-                            value = stringResource(getLocalizedTypeName(selectedType)),
-                            onValueChange = {},
-                            readOnly = true,
+                            value = stringResource(getLocalizedTypeName(selectedType)), onValueChange = {}, readOnly = true,
                             label = { Text(stringResource(Res.string.product_category)) },
-                            trailingIcon = { IconButton(onClick = { expandedType = true }) { Icon(Icons.Default.ArrowDropDown, null) } },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            trailingIcon = { IconButton(onClick = { expandedType = true; keyboardController?.hide() }) { Icon(Icons.Default.ArrowDropDown, null) } },
+                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
                         )
                         DropdownMenu(expanded = expandedType, onDismissRequest = { expandedType = false }) {
                             ProductType.entries.forEach { type ->
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(getLocalizedTypeName(type))) },
-                                    onClick = { selectedType = type; expandedType = false }
-                                )
+                                DropdownMenuItem(text = { Text(stringResource(getLocalizedTypeName(type))) }, onClick = { selectedType = type; expandedType = false })
                             }
                         }
                     }
 
-                    // RECUPERADO: Botón para buscar en la base de datos online si es una semilla/planta
                     if (isSeed || selectedType == ProductType.VEGETABLE) {
                         Button(
-                            onClick = {
-                                showApiSearchDialog = true
-                                searchQuery = ""
-                                viewModel.buscarCultivoApi("")
-                            },
+                            onClick = { showApiSearchDialog = true; searchQuery = ""; viewModel.buscarCultivoApi(""); keyboardController?.hide() },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                             shape = RoundedCornerShape(12.dp)
@@ -146,28 +136,22 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
                     }
 
                     HuertaInput(
-                        value = name,
-                        onValueChange = { name = it },
+                        value = name, onValueChange = { name = it },
                         label = stringResource(Res.string.product_name_label),
-                        icon = Icons.Default.Edit,
-                        imeAction = ImeAction.Next
+                        icon = Icons.Default.Edit, imeAction = ImeAction.Next
                     )
 
                     HuertaInput(
-                        value = stock,
-                        onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) stock = it },
+                        value = stock, onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) stock = it },
                         label = "${stringResource(Res.string.product_stock_label)} $unitLabel",
-                        icon = Icons.Default.Inventory,
-                        imeAction = ImeAction.Next
+                        icon = Icons.Default.Inventory, imeAction = ImeAction.Next
                     )
 
                     OutlinedTextField(
-                        value = notes,
-                        onValueChange = { notes = it },
+                        value = notes, onValueChange = { notes = it },
                         label = { Text(stringResource(Res.string.product_notes_label)) },
                         modifier = Modifier.fillMaxWidth().height(100.dp),
-                        maxLines = 4,
-                        shape = RoundedCornerShape(12.dp),
+                        maxLines = 4, shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                     )
@@ -177,26 +161,17 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
             Button(
                 onClick = {
                     viewModel.guardarProducto(
-                        id = productId ?: 0L,
-                        n = name,
-                        c = selectedType.name,
-                        s = stock.toDoubleOrNull() ?: 0.0,
-                        perenualId = perenualId,
-                        imagenUrl = selectedImageUrl,
-                        nombreCientifico = scientificName,
-                        notas = notes
+                        id = productId ?: 0L, n = name, c = selectedType.name, s = stock.toDoubleOrNull() ?: 0.0,
+                        perenualId = perenualId, imagenUrl = selectedImageUrl, nombreCientifico = scientificName, notas = notes
                     )
                     showSuccessDialog = true
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                enabled = name.isNotBlank(),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp), enabled = name.isNotBlank(), shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) { Text(if (isEditMode) stringResource(Res.string.product_save_changes) else stringResource(Res.string.product_save_sheet), fontSize = 16.sp, fontWeight = FontWeight.Bold) }
         }
     }
 
-    // RECUPERADO Y ADAPTADO: Diálogo de búsqueda en la API
     if (showApiSearchDialog) {
         AlertDialog(
             onDismissRequest = { showApiSearchDialog = false },
@@ -204,13 +179,9 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it; viewModel.buscarCultivoApi(it) },
+                        value = searchQuery, onValueChange = { searchQuery = it; viewModel.buscarCultivoApi(it) },
                         label = { Text(stringResource(Res.string.product_filter_hint)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.Search, null) },
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = { Icon(Icons.Default.Search, null) }, shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                     )
@@ -220,23 +191,8 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
                             items(apiResults) { crop ->
                                 ListItem(
                                     headlineContent = { Text(crop.commonName, fontWeight = FontWeight.Medium) },
-                                    leadingContent = {
-                                        AsyncImage(
-                                            model = crop.defaultImage?.regularUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surface),
-                                            contentScale = ContentScale.Crop,
-                                            placeholder = rememberVectorPainter(Icons.Default.Eco),
-                                            error = rememberVectorPainter(Icons.Default.Eco)
-                                        )
-                                    },
-                                    modifier = Modifier.clickable {
-                                        name = crop.commonName
-                                        perenualId = crop.id
-                                        selectedImageUrl = crop.defaultImage?.regularUrl
-                                        scientificName = crop.scientificName.firstOrNull()
-                                        showApiSearchDialog = false
-                                    }
+                                    leadingContent = { AsyncImage(model = crop.defaultImage?.regularUrl, contentDescription = null, modifier = Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surface), contentScale = ContentScale.Crop, placeholder = rememberVectorPainter(Icons.Default.Eco), error = rememberVectorPainter(Icons.Default.Eco)) },
+                                    modifier = Modifier.clickable { name = crop.commonName; perenualId = crop.id; selectedImageUrl = crop.defaultImage?.regularUrl; scientificName = crop.scientificName.firstOrNull(); showApiSearchDialog = false }
                                 )
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                             }
@@ -245,8 +201,7 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
                 }
             },
             confirmButton = { TextButton(onClick = { showApiSearchDialog = false }) { Text(stringResource(Res.string.btn_cancel)) } },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(24.dp)
+            containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
 
@@ -256,8 +211,7 @@ fun AddProductScreen(navController: NavController, productId: Long? = null, view
             title = { Text(stringResource(Res.string.dialog_success_title)) },
             text = { Text(msgSaved) },
             confirmButton = { Button(onClick = { showSuccessDialog = false; navController.popBackStack() }) { Text(stringResource(Res.string.dialog_btn_ok)) } },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(24.dp)
+            containerColor = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp)
         )
     }
 }

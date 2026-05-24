@@ -143,6 +143,9 @@ fun AppNavigation(isDarkTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
                 val taskId = backStackEntry.arguments?.getLong("taskId") ?: 0L
                 AnimalDiaryDetailScreen(navController, taskId)
             }
+            composable("developer_profile") {
+                com.example.proyecto.ui.profile.DeveloperProfileScreen(navController)
+            }
             composable(AppScreens.DiaryDetail, arguments = listOf(navArgument("taskId") { type = NavType.LongType })) {
                 DiaryDetailScreen(navController, it.arguments?.getLong("taskId") ?: 0L)
             }

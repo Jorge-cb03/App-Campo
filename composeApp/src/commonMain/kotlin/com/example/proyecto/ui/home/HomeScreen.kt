@@ -4,10 +4,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
@@ -15,287 +17,215 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.Clock
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.proyecto.ui.navigation.AppScreens
 import com.example.proyecto.ui.garden.GardenViewModel
-import com.example.proyecto.ui.garden.WeatherState
 import org.koin.compose.viewmodel.koinViewModel
-import kotlinx.datetime.*
 import org.jetbrains.compose.resources.stringResource
 import huertomanager.composeapp.generated.resources.*
+import androidx.navigation.NavGraph.Companion.findStartDestination
+
 
 object ShortcutManager {
     val pinnedGardenIds = mutableStateListOf<Long>()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, viewModel: GardenViewModel = koinViewModel()) {
-    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+fun HomeScreen(
+    navController: NavController,
+    viewModel: GardenViewModel = koinViewModel()
+) {
     val jardineras by viewModel.jardineras.collectAsState()
-    val favoritedGardens = jardineras.filter { it.esFavorita }
     val weatherState by viewModel.weatherState.collectAsState()
+    val scrollState = rememberScrollState()
+    val uriHandler = LocalUriHandler.current
 
-    val isDark = MaterialTheme.colorScheme.background == Color(0xFF0F172A) ||
-            MaterialTheme.colorScheme.background == Color(0xFF121212)
-
-    val favoriteColor = if (isDark) Color(0xFF4E342E) else Color(0xFFEFEBE9)
-    val favoriteBorder = if (isDark) Color(0xFF6D4C41) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    // Filtrar jardineras favoritas
+    val jardinerasFavoritas = jardineras.filter { it.esFavorita }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(AppScreens.Chat) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Default.Chat, contentDescription = "Asistente IA")
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Row(
-                Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text("${today.dayOfMonth}/${today.monthNumber}", color = MaterialTheme.colorScheme.secondary)
-                    Text(
-                        stringResource(Res.string.home_greeting),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-                IconButton(onClick = { navController.navigate(AppScreens.Alerts) }) {
-                    Icon(Icons.Filled.Notifications, null, tint = MaterialTheme.colorScheme.primary)
-                }
-            }
-
-            // ── WeatherCard mejorado ─────────────────────────────────────
-            WeatherCard(weatherState)
-
-            Spacer(Modifier.height(30.dp))
-            Text(
-                stringResource(Res.string.quick_access_title),
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onBackground
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(Res.string.app_name), fontWeight = FontWeight.Bold, fontSize = 24.sp) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Spacer(Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // ── WIDGET DEL CLIMA ──
+            OutlinedCard(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                if (favoritedGardens.isEmpty()) {
-                    Text(
-                        stringResource(Res.string.garden_no_history),
-                        color = Color.Gray,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                } else {
-                    favoritedGardens.forEach { garden ->
-                        Card(
-                            modifier = Modifier.width(150.dp).height(110.dp).clickable {
-                                navController.navigate("garden/${garden.id}") { launchSingleTop = true }
-                            },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = favoriteColor),
-                            border = BorderStroke(1.dp, favoriteBorder)
-                        ) {
-                            Column(
-                                Modifier.fillMaxSize().padding(12.dp),
-                                Arrangement.Center,
-                                Alignment.CenterHorizontally
-                            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Clima Actual", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                            Spacer(Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    Icons.Default.PushPin, null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(28.dp)
+                                    imageVector = if (weatherState.isDay == 1) Icons.Rounded.WbSunny else Icons.Rounded.NightsStay,
+                                    contentDescription = null,
+                                    tint = if (weatherState.isDay == 1) Color(0xFFFFA000) else Color(0xFF5E35B1),
+                                    modifier = Modifier.size(36.dp)
                                 )
-                                Spacer(Modifier.height(8.dp))
-                                Text(
-                                    text = garden.nombre,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1,
-                                    color = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface
-                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text("${weatherState.temperature} °C", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(20.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        WeatherStatItem(Icons.Rounded.Air, "Viento", "Normal", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onSurface)
+                        WeatherStatItem(Icons.Rounded.WaterDrop, "Humedad", "Media", Color(0xFF0288D1), MaterialTheme.colorScheme.onSurface)
+                        WeatherStatItem(Icons.Rounded.BrightnessHigh, "Índice UV", uvLabel(5.0), Color(0xFFE64A19), MaterialTheme.colorScheme.onSurface)
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // Pie de más info nativo con clic a Google
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            try { uriHandler.openUri("https://weather.com") } catch (e: Exception) {}
+                        },
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Ver más en Google  →",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            // ── JARDINERAS FAVORITAS ──
+            Text("Jardineras Favoritas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+
+            if (jardinerasFavoritas.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No tienes jardineras marcadas como favoritas.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(end = 16.dp)
+                ) {
+                    items(jardinerasFavoritas) { jardinera ->
+                        Card(
+                            modifier = Modifier
+                                .width(160.dp)
+                                .clickable {
+                                    navController.navigate("garden/${jardinera.id}") {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Box(
+                                    modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.LocalFlorist, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                Text(jardinera.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimaryContainer, maxLines = 1)
+                                Text("${jardinera.filas * jardinera.columnas} Bancales", fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                             }
                         }
                     }
                 }
             }
-            Spacer(Modifier.height(24.dp))
-        }
-    }
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  WEATHER CARD MEJORADA
-// ─────────────────────────────────────────────────────────────────────────────
-@Composable
-fun WeatherCard(state: WeatherState) {
-    val uriHandler = LocalUriHandler.current
-    val isNight = state.isDay == 0
+            Spacer(Modifier.height(8.dp))
 
-    // Colores según día/noche
-    val bgColor   = if (isNight) Color(0xFF1E293B)              else Color(0xFFF1C40F).copy(alpha = 0.15f)
-    val textColor = if (isNight) Color.White                     else Color(0xFF1A1A1A)
-    val subColor  = if (isNight) Color.White.copy(alpha = 0.75f) else Color(0xFF444444)
-    val sunColor  = if (isNight) Color.White                     else Color(0xFFF1C40F)
-
-    // Descripción del estado del cielo
-    val statusText = when (state.weatherCode) {
-        0            -> if (isNight) stringResource(Res.string.weather_night) else stringResource(Res.string.weather_sunny)
-        in 1..3      -> stringResource(Res.string.weather_cloudy)
-        in 51..65    -> stringResource(Res.string.weather_rainy)
-        in 71..77    -> "Nevando"
-        in 80..82    -> "Chubascos"
-        in 95..99    -> "Tormenta"
-        else         -> if (state.isLoading) stringResource(Res.string.weather_loading) else "Normal"
-    }
-
-    // Temperatura y sensación
-    val tempText      = if (state.isLoading) "..." else "${state.temperature}°C"
-    val feelsLikeText = if (state.isLoading) "..." else "${state.feelsLike}°C"
-
-    // Humedad, precipitación, UV — valores del estado (con fallback a "–" si no están)
-    val humidityText     = if (state.isLoading) "..." else "${state.humidity}%"
-    val precipText       = if (state.isLoading) "..." else "${state.precipitation} mm"
-    val uvText           = if (state.isLoading) "..." else uvLabel(state.uvIndex)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                // Abre Google con la búsqueda de tiempo; detecta la ubicación automáticamente
-                uriHandler.openUri("https://www.google.com/search?q=tiempo+ahora+en+mi+ubicacion")
-            },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = bgColor)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-
-            // ── Fila superior: temperatura grande + icono ────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.weather_title_now),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = subColor,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = tempText,
-                        fontSize = 52.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                        lineHeight = 54.sp
-                    )
-                    Text(
-                        text = statusText,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp,
-                        color = subColor
-                    )
+            // ── ACCESOS DIRECTOS ──
+            Text("Acciones Rápidas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                QuickActionCard(
+                    title = "Añadir Tarea",
+                    icon = Icons.Rounded.EditCalendar,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val epoch = Clock.System.now().toEpochMilliseconds()
+                    navController.navigate("add_diary_entry/$epoch")
                 }
-
-                Icon(
-                    imageVector = if (isNight) Icons.Default.NightsStay else Icons.Default.WbSunny,
-                    contentDescription = null,
-                    modifier = Modifier.size(72.dp),
-                    tint = sunColor
-                )
+                QuickActionCard(
+                    title = "Chat IA",
+                    icon = Icons.Rounded.SmartToy,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    navController.navigate("chat")
+                }
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            // ── Divider sutil ────────────────────────────────────────────
-            HorizontalDivider(
-                color = if (isNight) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.08f)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // ── Fila de estadísticas: Sensación | Humedad | Lluvia | UV ──
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                WeatherStatItem(
-                    icon  = Icons.Rounded.Thermostat,
-                    label = "Sensación",
-                    value = feelsLikeText,
-                    tint  = subColor,
-                    text  = textColor
-                )
-                WeatherStatItem(
-                    icon  = Icons.Rounded.WaterDrop,
-                    label = "Humedad",
-                    value = humidityText,
-                    tint  = subColor,
-                    text  = textColor
-                )
-                WeatherStatItem(
-                    icon  = Icons.Rounded.Umbrella,
-                    label = "Lluvia",
-                    value = precipText,
-                    tint  = subColor,
-                    text  = textColor
-                )
-                WeatherStatItem(
-                    icon  = Icons.Rounded.LightMode,
-                    label = "Índice UV",
-                    value = uvText,
-                    tint  = subColor,
-                    text  = textColor
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
-
-            // ── Pie: toque para más info ─────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Ver más en Google  →",
-                    fontSize = 11.sp,
-                    color = subColor,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Spacer(Modifier.height(40.dp))
         }
     }
 }
 
-/** Pequeño bloque icono + etiqueta + valor para la fila de stats */
+@Composable
+private fun QuickActionCard(title: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(
+        modifier = modifier.height(100.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Icon(icon, null, tint = color, modifier = Modifier.size(28.dp))
+            Spacer(Modifier.height(8.dp))
+            Text(title, fontWeight = FontWeight.Bold, color = color, fontSize = 14.sp)
+        }
+    }
+}
+
 @Composable
 private fun WeatherStatItem(
     icon: ImageVector,
@@ -312,11 +242,9 @@ private fun WeatherStatItem(
     }
 }
 
-/** Convierte el índice UV numérico en una etiqueta legible */
 private fun uvLabel(uv: Double): String = when {
-    uv < 3  -> "Bajo"
-    uv < 6  -> "Moderado"
-    uv < 8  -> "Alto"
-    uv < 11 -> "Muy alto"
-    else    -> "Extremo"
+    uv < 3.0  -> "Bajo"
+    uv < 6.0  -> "Moderado"
+    uv < 8.0  -> "Alto"
+    else -> "Extremo"
 }
