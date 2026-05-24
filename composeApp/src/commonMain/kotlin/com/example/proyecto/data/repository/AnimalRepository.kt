@@ -29,7 +29,7 @@ class AnimalRepository(
         FichaAnimal("Perdiz", true, "Aves", "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"),
         FichaAnimal("Codorniz", true, "Aves", "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"),
         FichaAnimal("Pato", true, "Aves", "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?q=80&w=400"),
-        FichaAnimal("Perro Pastor", false, "Perros", "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400")
+        FichaAnimal("Perro", false, "Perros", "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400")
     )
 
     fun getFichaPorNombre(tipo: String) = getCatalogo().find { it.nombre.equals(tipo, ignoreCase = true) }
