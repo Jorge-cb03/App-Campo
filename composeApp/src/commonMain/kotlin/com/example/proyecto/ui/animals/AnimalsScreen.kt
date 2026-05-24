@@ -31,14 +31,18 @@ fun AnimalsScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0), // Eliminamos insets automáticos
+        contentWindowInsets = WindowInsets(0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(AppScreens.AddAnimal) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir Animal", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.add_animal_fab_desc),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     ) { padding ->
@@ -46,7 +50,7 @@ fun AnimalsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .statusBarsPadding()          // Respetamos la barra de estado manualmente
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(Modifier.height(24.dp))
@@ -80,13 +84,13 @@ fun AnimalsScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "${cercado.numero} - ${cercado.nombre}",
+                                    text = stringResource(Res.string.cercado_format, cercado.numero, cercado.nombre),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp
                                 )
                                 Spacer(Modifier.height(8.dp))
                                 Text(
-                                    text = "Animales en este cercado: ${animalesDelCercado.size}",
+                                    text = stringResource(Res.string.animals_count, animalesDelCercado.size),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }

@@ -22,6 +22,8 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+val ktorVersion = "2.3.12"
+
 kotlin {
     androidTarget {
         compilerOptions {
@@ -40,31 +42,6 @@ kotlin {
     }
 
     sourceSets {
-
-        val androidMain by getting {
-            dependencies {
-                implementation(libs.compose.uiToolingPreview)
-                implementation(libs.androidx.activity.compose)
-                implementation(libs.play.services.location)
-                implementation(libs.ktor.client.okhttp)
-
-                // Motor de Ktor para Android (necesario para descargar la foto)
-                implementation(libs.ktor.client.okhttp)
-
-                // Firebase nativo Android
-                implementation(libs.firebase.messaging)
-
-                // Google Sign-In Nativo
-                implementation("com.google.android.gms:play-services-auth:21.0.0")
-            }
-        }
-
-        val iosMain by creating {
-            dependsOn(commonMain.get())
-            dependencies {
-                implementation("io.ktor:ktor-client-darwin:2.3.11")
-            }
-        }
 
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -87,20 +64,50 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
 
-            // Ktor Core (Sustituido por variables directas para evitar errores de libs.versions)
-            implementation("io.ktor:ktor-client-core:2.3.11")
-            implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.11")
-            implementation("io.ktor:ktor-client-logging:2.3.11")
+            // Ktor – solo el core y los plugins van en commonMain
+            // El motor (okhttp / darwin) va en cada plataforma
+            implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+            implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-            // --- COIL 3 (KMP) ---
+            // Coil 3 (KMP)
             implementation("io.coil-kt.coil3:coil-compose:3.0.0-alpha06")
             implementation("io.coil-kt.coil3:coil-network-ktor:3.0.0-alpha06")
 
-            // Firebase Multiplatform SDK
+            // Firebase Multiplatform
             implementation("dev.gitlive:firebase-auth:1.13.0")
             implementation("dev.gitlive:firebase-firestore:1.13.0")
         }
+
+        // ── androidMain: motor OkHttp + librerías solo Android ───────────────
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.compose.uiToolingPreview)
+                implementation(libs.androidx.activity.compose)
+                implementation(libs.play.services.location)
+
+                // Motor Ktor para Android (OkHttp)
+                implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+
+                // Firebase nativo Android
+                implementation(libs.firebase.messaging)
+
+                // Google Sign-In nativo Android
+                implementation("com.google.android.gms:play-services-auth:21.0.0")
+            }
+        }
+
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                // Motor Ktor para iOS (Darwin = URLSession nativo)
+                implementation("io.ktor:ktor-client-darwin:$ktorVersion")
+            }
+        }
+
+        val iosArm64Main by getting { dependsOn(iosMain) }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -136,7 +143,7 @@ android {
 }
 
 dependencies {
-    // Firebase BOM
+    // Firebase BOM (solo para el bloque de Android nativo)
     implementation(platform(libs.firebase.bom))
 
     debugImplementation(libs.compose.uiTooling)

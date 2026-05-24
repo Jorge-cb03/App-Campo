@@ -51,6 +51,14 @@ fun HomeScreen(
     // Filtrar jardineras favoritas
     val jardinerasFavoritas = jardineras.filter { it.esFavorita }
 
+    // UV label calculado como composable local
+    val uvValue = when {
+        5.0 < 3.0 -> stringResource(Res.string.uv_low)
+        5.0 < 6.0 -> stringResource(Res.string.uv_moderate)
+        5.0 < 8.0 -> stringResource(Res.string.uv_high)
+        else       -> stringResource(Res.string.uv_extreme)
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -85,7 +93,11 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("Clima Actual", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                            Text(
+                                stringResource(Res.string.weather_current_title),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
                             Spacer(Modifier.height(4.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
@@ -95,7 +107,12 @@ fun HomeScreen(
                                     modifier = Modifier.size(36.dp)
                                 )
                                 Spacer(Modifier.width(12.dp))
-                                Text("${weatherState.temperature} °C", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text(
+                                    "${weatherState.temperature} °C",
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
                     }
@@ -108,14 +125,31 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        WeatherStatItem(Icons.Rounded.Air, "Viento", "Normal", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onSurface)
-                        WeatherStatItem(Icons.Rounded.WaterDrop, "Humedad", "Media", Color(0xFF0288D1), MaterialTheme.colorScheme.onSurface)
-                        WeatherStatItem(Icons.Rounded.BrightnessHigh, "Índice UV", uvLabel(5.0), Color(0xFFE64A19), MaterialTheme.colorScheme.onSurface)
+                        WeatherStatItem(
+                            Icons.Rounded.Air,
+                            stringResource(Res.string.weather_wind),
+                            stringResource(Res.string.weather_wind_normal),
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.onSurface
+                        )
+                        WeatherStatItem(
+                            Icons.Rounded.WaterDrop,
+                            stringResource(Res.string.weather_humidity),
+                            stringResource(Res.string.weather_humidity_medium),
+                            Color(0xFF0288D1),
+                            MaterialTheme.colorScheme.onSurface
+                        )
+                        WeatherStatItem(
+                            Icons.Rounded.BrightnessHigh,
+                            stringResource(Res.string.weather_uv_index),
+                            uvValue,
+                            Color(0xFFE64A19),
+                            MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     Spacer(Modifier.height(10.dp))
 
-                    // Pie de más info nativo con clic a Google
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
                             try { uriHandler.openUri("https://weather.com") } catch (e: Exception) {}
@@ -124,7 +158,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Ver más en Google  →",
+                            text = stringResource(Res.string.weather_more_on_google),
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
@@ -134,14 +168,26 @@ fun HomeScreen(
             }
 
             // ── JARDINERAS FAVORITAS ──
-            Text("Jardineras Favoritas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(
+                stringResource(Res.string.home_favorite_gardens),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
             if (jardinerasFavoritas.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No tienes jardineras marcadas como favoritas.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(Res.string.home_no_favorites),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             } else {
                 LazyRow(
@@ -164,14 +210,27 @@ fun HomeScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Box(
-                                    modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)),
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(Icons.Default.LocalFlorist, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                 }
                                 Spacer(Modifier.height(12.dp))
-                                Text(jardinera.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimaryContainer, maxLines = 1)
-                                Text("${jardinera.filas * jardinera.columnas} Bancales", fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                                Text(
+                                    jardinera.nombre,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    stringResource(Res.string.garden_bancales_count, jardinera.filas * jardinera.columnas),
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
                             }
                         }
                     }
@@ -181,10 +240,15 @@ fun HomeScreen(
             Spacer(Modifier.height(8.dp))
 
             // ── ACCESOS DIRECTOS ──
-            Text("Acciones Rápidas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(
+                stringResource(Res.string.quick_actions_title),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 QuickActionCard(
-                    title = "Añadir Tarea",
+                    title = stringResource(Res.string.home_add_task),
                     icon = Icons.Rounded.EditCalendar,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f)
@@ -192,14 +256,14 @@ fun HomeScreen(
                     val epoch = Clock.System.now().toEpochMilliseconds()
                     navController.navigate("add_diary_entry/$epoch")
                 }
-                /*QuickActionCard(
+                QuickActionCard(
                     title = "Chat IA",
                     icon = Icons.Rounded.SmartToy,
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
                 ) {
                     navController.navigate("chat")
-                }*/
+                }
             }
 
             Spacer(Modifier.height(40.dp))
@@ -240,11 +304,4 @@ private fun WeatherStatItem(
         Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = text)
         Text(text = label, fontSize = 10.sp, color = tint)
     }
-}
-
-private fun uvLabel(uv: Double): String = when {
-    uv < 3.0  -> "Bajo"
-    uv < 6.0  -> "Moderado"
-    uv < 8.0  -> "Alto"
-    else -> "Extremo"
 }

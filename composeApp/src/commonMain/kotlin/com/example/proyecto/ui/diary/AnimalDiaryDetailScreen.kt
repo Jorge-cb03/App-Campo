@@ -26,7 +26,9 @@ import com.example.proyecto.data.database.entity.CercadoEntity
 import com.example.proyecto.data.database.entity.EntradaDiarioAnimalEntity
 import com.example.proyecto.ui.animals.AnimalsViewModel
 import com.example.proyecto.ui.theme.RedDanger
+import huertomanager.composeapp.generated.resources.*
 import kotlinx.datetime.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +51,6 @@ fun AnimalDiaryDetailScreen(
         entrada = viewModel.getEntradaDiarioAnimalById(taskId)
     }
 
-    // Actualiza el cercado cuando tengamos tanto la entrada como la lista de cercados
     LaunchedEffect(entrada, cercados) {
         entrada?.let { e ->
             cercadoAsociado = cercados.find { c -> c.id == e.cercadoId }
@@ -87,9 +88,8 @@ fun AnimalDiaryDetailScreen(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
-                            // ── Editar ──────────────────────────────────────
                             DropdownMenuItem(
-                                text = { Text("Editar registro") },
+                                text = { Text(stringResource(Res.string.diary_edit_record)) },
                                 leadingIcon = { Icon(Icons.Default.Edit, null) },
                                 onClick = {
                                     showMenu = false
@@ -98,9 +98,8 @@ fun AnimalDiaryDetailScreen(
                                     }
                                 }
                             )
-                            // ── Eliminar ────────────────────────────────────
                             DropdownMenuItem(
-                                text = { Text("Eliminar registro", color = RedDanger) },
+                                text = { Text(stringResource(Res.string.diary_delete_record), color = RedDanger) },
                                 leadingIcon = { Icon(Icons.Default.Delete, null, tint = RedDanger) },
                                 onClick = {
                                     showMenu = false
@@ -121,13 +120,16 @@ fun AnimalDiaryDetailScreen(
             }
         } else {
             val item = entrada!!
+            val sinNotas = stringResource(Res.string.diary_no_notes_short)
+            val sinCercado = stringResource(Res.string.cercado_none)
+
             val date = Instant.fromEpochMilliseconds(item.fecha)
                 .toLocalDateTime(TimeZone.currentSystemDefault())
             val formattedDate = "${date.dayOfMonth}/${date.monthNumber}/${date.year}"
 
             Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
 
-                // ── CABECERA — idéntica a DiaryDetailScreen ──────────────
+                // ── CABECERA ──────────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -152,7 +154,6 @@ fun AnimalDiaryDetailScreen(
                         )
                     }
 
-                    // Badge de tipo de acción — igual que en jardinería
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -173,7 +174,7 @@ fun AnimalDiaryDetailScreen(
                     }
                 }
 
-                // ── CUERPO — mismo layout que DiaryDetailScreen ──────────
+                // ── CUERPO ────────────────────────────────────────────────
                 Column(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -195,22 +196,20 @@ fun AnimalDiaryDetailScreen(
                             modifier = Modifier.padding(20.dp).fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            // Fecha
                             DetailInfoBox(
                                 icon = Icons.Rounded.CalendarToday,
-                                label = "Fecha",
+                                label = stringResource(Res.string.diary_detail_date),
                                 value = formattedDate
                             )
                             VerticalDivider(
                                 modifier = Modifier.height(40.dp),
                                 color = MaterialTheme.colorScheme.outlineVariant
                             )
-                            // Cercado (equivalente al Bancal en jardinería)
                             DetailInfoBox(
                                 icon = Icons.Rounded.Fence,
-                                label = "Cercado",
+                                label = stringResource(Res.string.cercado_label),
                                 value = cercadoAsociado?.let { "${it.numero} - ${it.nombre}" }
-                                    ?: "Sin cercado"
+                                    ?: sinCercado
                             )
                         }
                     }
@@ -218,7 +217,7 @@ fun AnimalDiaryDetailScreen(
                     // Sección de Notas
                     Column {
                         Text(
-                            text = "Notas del ganadero",
+                            text = stringResource(Res.string.diary_animal_notes_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -230,7 +229,7 @@ fun AnimalDiaryDetailScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = item.descripcion.ifBlank { "Sin notas adicionales." },
+                                text = item.descripcion.ifBlank { sinNotas },
                                 style = MaterialTheme.typography.bodyLarge,
                                 lineHeight = 26.sp,
                                 modifier = Modifier.padding(20.dp),
@@ -249,8 +248,8 @@ fun AnimalDiaryDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             icon = { Icon(Icons.Rounded.Warning, null, tint = RedDanger) },
-            title = { Text("Eliminar registro", fontWeight = FontWeight.Bold) },
-            text = { Text("¿Estás seguro de que quieres eliminar este registro? Esta acción no se puede deshacer.") },
+            title = { Text(stringResource(Res.string.diary_delete_record), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.diary_delete_confirm_animal)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -260,21 +259,23 @@ fun AnimalDiaryDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = RedDanger),
                     shape = RoundedCornerShape(12.dp)
-                ) { Text("Eliminar") }
+                ) { Text(stringResource(Res.string.btn_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(Res.string.btn_cancel))
+                }
             },
             shape = RoundedCornerShape(28.dp)
         )
     }
 
-    // ── Diálogo: borrado exitoso (igual que jardinería) ──────────────────
+    // ── Diálogo: borrado exitoso ─────────────────────────────────────────
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text("¡Listo!", fontWeight = FontWeight.Bold) },
-            text = { Text("El registro de animales se ha eliminado correctamente.") },
+            title = { Text(stringResource(Res.string.dialog_done_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.success_animal_diary_deleted)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -282,7 +283,7 @@ fun AnimalDiaryDetailScreen(
                         navController.popBackStack()
                     },
                     shape = RoundedCornerShape(12.dp)
-                ) { Text("Aceptar") }
+                ) { Text(stringResource(Res.string.btn_accept)) }
             },
             shape = RoundedCornerShape(28.dp)
         )

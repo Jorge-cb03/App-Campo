@@ -46,34 +46,38 @@ fun AnimalGroupDetailScreen(
     val animalesEnCercado = animales.filter { it.cercadoId == cercadoId }
     val animalesAgrupadosPorTipo = animalesEnCercado.groupBy { it.tipo }
 
-    // --- ESTADOS PARA DIÁLOGOS Y REALIMENTACIÓN ---
     var animalAEditar by remember { mutableStateOf<AnimalEntity?>(null) }
     var animalADeleteConfirm by remember { mutableStateOf<AnimalEntity?>(null) }
-    var successType by remember { mutableStateOf<String?>(null) } // "eggs","feed","edited","deleted","cercado_edited","cercado_deleted","animals_moved"
+    var successType by remember { mutableStateOf<String?>(null) }
 
     var showEggDialogForType by remember { mutableStateOf<String?>(null) }
     var showFeedDialog by remember { mutableStateOf(false) }
 
-    // --- NUEVOS ESTADOS PARA MENÚ CERCADO ---
     var showCercadoMenu by remember { mutableStateOf(false) }
     var showEditCercadoDialog by remember { mutableStateOf(false) }
-    var showDeleteCercadoDialog by remember { mutableStateOf(false) }   // Paso 1: ¿Eliminar o mover?
-    var showMoveAnimalsDialog by remember { mutableStateOf(false) }     // Paso 2: Elegir cercado destino
+    var showDeleteCercadoDialog by remember { mutableStateOf(false) }
+    var showMoveAnimalsDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(cercadoActual?.let { stringResource(Res.string.cercado_dropdown_format, it.numero, it.nombre) } ?: "Detalle")
+                    Text(
+                        cercadoActual?.let {
+                            stringResource(Res.string.cercado_dropdown_format, it.numero, it.nombre)
+                        } ?: stringResource(Res.string.cercado_detail_title)
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, null) }
                 },
-                // ── MENÚ DE TRES PUNTOS ──────────────────────────────────
                 actions = {
                     Box {
                         IconButton(onClick = { showCercadoMenu = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Opciones del cercado")
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = stringResource(Res.string.cercado_options_menu)
+                            )
                         }
                         DropdownMenu(
                             expanded = showCercadoMenu,
@@ -214,7 +218,6 @@ fun AnimalGroupDetailScreen(
     }
 
     // ── DIÁLOGO: CONFIRMACIÓN ELIMINAR CERCADO (paso 1) ──────────────────────
-    // Muestra dos acciones: "Mover animales" o "Eliminar todo"
     if (showDeleteCercadoDialog && cercadoActual != null) {
         AlertDialog(
             onDismissRequest = { showDeleteCercadoDialog = false },
@@ -234,7 +237,6 @@ fun AnimalGroupDetailScreen(
                 )
             },
             confirmButton = {
-                // Botón rojo: eliminar cercado Y todos sus animales
                 Button(
                     onClick = {
                         showDeleteCercadoDialog = false
@@ -247,7 +249,6 @@ fun AnimalGroupDetailScreen(
             },
             dismissButton = {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Botón secundario: mover animales a otro cercado (solo si hay animales)
                     if (animalesEnCercado.isNotEmpty()) {
                         TextButton(onClick = {
                             showDeleteCercadoDialog = false
@@ -341,7 +342,7 @@ fun AnimalGroupDetailScreen(
         )
     }
 
-    // ── DIÁLOGOS EXISTENTES (sin cambios) ────────────────────────────────────
+    // ── DIÁLOGOS EXISTENTES ──────────────────────────────────────────────────
 
     if (showEggDialogForType != null && cercadoActual != null) {
         CollectEggsDialog(
@@ -411,13 +412,13 @@ fun AnimalGroupDetailScreen(
             text = {
                 Text(
                     when (successType) {
-                        "eggs"           -> stringResource(Res.string.success_eggs_collected)
-                        "feed"           -> stringResource(Res.string.success_feed_given)
-                        "edited"         -> stringResource(Res.string.success_animal_edited)
-                        "cercado_edited" -> stringResource(Res.string.success_cercado_edited)
-                        "cercado_deleted"-> stringResource(Res.string.success_cercado_deleted)
-                        "animals_moved"  -> stringResource(Res.string.success_animals_moved)
-                        else             -> stringResource(Res.string.success_animal_deleted)
+                        "eggs"            -> stringResource(Res.string.success_eggs_collected)
+                        "feed"            -> stringResource(Res.string.success_feed_given)
+                        "edited"          -> stringResource(Res.string.success_animal_edited)
+                        "cercado_edited"  -> stringResource(Res.string.success_cercado_edited)
+                        "cercado_deleted" -> stringResource(Res.string.success_cercado_deleted)
+                        "animals_moved"   -> stringResource(Res.string.success_animals_moved)
+                        else              -> stringResource(Res.string.success_animal_deleted)
                     }
                 )
             },
@@ -428,7 +429,7 @@ fun AnimalGroupDetailScreen(
     }
 }
 
-// ── COMPOSABLES DE APOYO (sin cambios respecto al original) ──────────────────
+// ── COMPOSABLES DE APOYO ─────────────────────────────────────────────────────
 
 @Composable
 fun FeedDialog(onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {

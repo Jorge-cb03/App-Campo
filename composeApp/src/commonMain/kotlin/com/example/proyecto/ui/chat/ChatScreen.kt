@@ -1,4 +1,4 @@
-/*package com.example.proyecto.ui.chat
+package com.example.proyecto.ui.chat
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -9,8 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,12 +33,12 @@ fun ChatScreen(
     viewModel: ChatViewModel = koinViewModel()
 ) {
     val chatHistory by viewModel.chatHistory.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    var textInput by remember { mutableStateOf("") }
+    val isLoading   by viewModel.isLoading.collectAsState()
+    var textInput   by remember { mutableStateOf("") }
 
     val keyboardController = LocalSoftwareKeyboardController.current
-    val listState = rememberLazyListState()
-    val focusRequester = remember { FocusRequester() }
+    val listState          = rememberLazyListState()
+    val focusRequester     = remember { FocusRequester() }
 
     // Auto-scroll al último mensaje
     LaunchedEffect(chatHistory.size, isLoading) {
@@ -46,7 +46,7 @@ fun ChatScreen(
         if (chatHistory.isNotEmpty()) listState.animateScrollToItem(target)
     }
 
-    // Pedir foco al input al entrar en pantalla
+    // Foco automático al abrir la pantalla
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -55,20 +55,21 @@ fun ChatScreen(
         if (textInput.isNotBlank() && !isLoading) {
             viewModel.sendMessage(textInput.trim())
             textInput = ""
-            // No ocultamos el teclado: el usuario querrá seguir escribiendo
         }
     }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { keyboardController?.hide() }) },
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = { keyboardController?.hide() })
+        },
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Asistente IA", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -79,16 +80,12 @@ fun ChatScreen(
             )
         }
     ) { padding ->
-        // ── CLAVE: imePadding() en el Column externo ────────────────────────
-        // El LazyColumn ocupa todo el espacio libre y la fila del input
-        // queda pegada al borde superior del teclado automáticamente.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .imePadding()          // ← empuja el contenido por encima del teclado
+                .imePadding()
         ) {
-            // Lista de mensajes: ocupa el espacio disponible y hace scroll
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -104,7 +101,9 @@ fun ChatScreen(
                 if (isLoading) {
                     item {
                         Box(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
                             contentAlignment = Alignment.CenterStart
                         ) {
                             CircularProgressIndicator(
@@ -116,13 +115,11 @@ fun ChatScreen(
                 }
             }
 
-            // Separador sutil
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                 thickness = 1.dp
             )
 
-            // Barra de entrada – siempre visible encima del teclado
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -135,7 +132,7 @@ fun ChatScreen(
                     placeholder = { Text("Pregúntame sobre tu huerto...") },
                     modifier = Modifier
                         .weight(1f)
-                        .focusRequester(focusRequester),   // ← foco automático
+                        .focusRequester(focusRequester),
                     shape = RoundedCornerShape(24.dp),
                     maxLines = 4,
                     enabled = !isLoading,
@@ -148,12 +145,12 @@ fun ChatScreen(
                     enabled = textInput.isNotBlank() && !isLoading,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor   = MaterialTheme.colorScheme.onPrimary,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Default.Send, contentDescription = "Enviar")
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar")
                 }
             }
         }
@@ -168,9 +165,10 @@ private fun ChatBubble(message: ChatMessage) {
     ) {
         Card(
             shape = RoundedCornerShape(
-                topStart = 16.dp, topEnd = 16.dp,
-                bottomStart = if (message.isUser) 16.dp else 0.dp,
-                bottomEnd = if (message.isUser) 0.dp else 16.dp
+                topStart    = 16.dp,
+                topEnd      = 16.dp,
+                bottomStart = if (message.isUser) 16.dp else 4.dp,
+                bottomEnd   = if (message.isUser) 4.dp  else 16.dp
             ),
             colors = CardDefaults.cardColors(
                 containerColor = if (message.isUser)
@@ -191,4 +189,4 @@ private fun ChatBubble(message: ChatMessage) {
             )
         }
     }
-}*/
+}

@@ -31,11 +31,8 @@ import com.example.proyecto.ui.alerts.AlertsScreen
 import com.example.proyecto.ui.animals.AddAnimalScreen
 import com.example.proyecto.ui.animals.AnimalGroupDetailScreen
 import com.example.proyecto.ui.diary.AddDiaryEntryAnimalScreen
-
-// ---> IMPORTACIÓN VITAL PARA QUE ENCUENTRE LA IA <---
-//import com.example.proyecto.ui.chat.ChatScreen
+import com.example.proyecto.ui.chat.ChatScreen
 import com.example.proyecto.ui.diary.AnimalDiaryDetailScreen
-
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 
@@ -171,10 +168,9 @@ fun AppNavigation(isDarkTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
                 AnimalGroupDetailScreen(navController, type)
             }
 
-            /*
             composable(AppScreens.Chat) {
                 ChatScreen(navController = navController)
-            }*/
+            }
         }
     }
 }

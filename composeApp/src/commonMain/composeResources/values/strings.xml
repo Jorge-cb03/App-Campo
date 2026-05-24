@@ -459,4 +459,31 @@
     <string name="success_cercado_edited">El cercado ha sido actualizado correctamente.</string>
     <string name="success_cercado_deleted">El cercado y sus animales han sido eliminados.</string>
     <string name="success_animals_moved">Los animales han sido trasladados y el cercado eliminado.</string>
+    <string name="weather_current_title">Clima Actual</string>
+    <string name="weather_wind">Viento</string>
+    <string name="weather_wind_normal">Normal</string>
+    <string name="weather_humidity_medium">Media</string>
+    <string name="weather_uv_index">Índice UV</string>
+    <string name="uv_low">Bajo</string>
+    <string name="uv_moderate">Moderado</string>
+    <string name="uv_high">Alto</string>
+    <string name="uv_extreme">Extremo</string>
+    <string name="weather_more_on_google">Ver más en Google →</string>
+    <string name="home_favorite_gardens">Jardineras Favoritas</string>
+    <string name="home_no_favorites">No tienes jardineras marcadas como favoritas.</string>
+    <string name="garden_bancales_count">%1$d Bancales</string>
+    <string name="home_add_task">Añadir Tarea</string>
+
+    <!-- AnimalDiaryDetailScreen -->
+    <string name="diary_animal_notes_title">Notas del ganadero</string>
+    <string name="diary_no_notes_short">Sin notas adicionales.</string>
+    <string name="cercado_none">Sin cercado</string>
+    <string name="diary_delete_confirm_animal">¿Estás seguro de que quieres eliminar este registro? Esta acción no se puede deshacer.</string>
+    <string name="dialog_done_title">¡Listo!</string>
+    <string name="success_animal_diary_deleted">El registro de animales se ha eliminado correctamente.</string>
+
+    <!-- AnimalGroupDetailScreen + AnimalsScreen -->
+    <string name="cercado_detail_title">Detalle</string>
+    <string name="cercado_options_menu">Opciones del cercado</string>
+    <string name="add_animal_fab_desc">Añadir Animal</string>
 </resources>

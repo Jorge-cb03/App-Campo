@@ -6,6 +6,7 @@ import com.example.proyecto.data.repository.AnimalRepository
 import com.example.proyecto.data.repository.AuthRepository
 import com.example.proyecto.data.repository.JardineraRepository
 import com.example.proyecto.ui.animals.AnimalsViewModel
+import com.example.proyecto.ui.chat.ChatViewModel
 import com.example.proyecto.ui.garden.GardenViewModel
 import com.example.proyecto.util.LocationProvider
 import org.koin.core.module.dsl.viewModel
@@ -52,4 +53,5 @@ val appModule = module {
             locationProvider = get<LocationProvider>()
         )
     }
+    viewModel { ChatViewModel() }
 }
